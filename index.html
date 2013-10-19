@@ -163,7 +163,9 @@ function loadSoundCloud() {
 	if (text) {
 		SC.get('/resolve', {url:text}, function(track) {
 			if (track.id) {
-				audio.src = "http://api.soundcloud.com/tracks/" + track.id + "/stream?client_id=28c66c838c6f68e374e707978b672fa8";
+				var src = "http://api.soundcloud.com/tracks/" + track.id + "/stream?client_id=28c66c838c6f68e374e707978b672fa8";
+				audio.src = src;
+//				loadBuffer(musicSource, src);
 			}
 		});
 	}
@@ -174,6 +176,7 @@ function loadSoundCloud() {
 
 function playMusic() {
 	audio.play();
+//	musicSource.noteOn(0);
 	beatMan.play = true;
 }
 
@@ -218,6 +221,8 @@ console.log("loadedMetadata");
 			
 			audio = document.getElementById("music");
 			musicSource = audioContext.createMediaElementSource(audio);
+//			musicSource = audioContext.createBufferSource();
+//			loadBuffer(musicSource, audio.currentSrc);
 			musicSource.loop = true;
 			
 			loFilter = audioContext.createBiquadFilter();
