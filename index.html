@@ -226,15 +226,15 @@ console.log("loadedMetadata");
 			musicSource.loop = true;
 			
 			loFilter = audioContext.createBiquadFilter();
-			loFilter.type = 0;	// low pass
+			loFilter.type = "lowpass";
 			loFilter.frequency.value = loFilter.frequency.maxValue;
 			
 			hiFilter = audioContext.createBiquadFilter();
-			hiFilter.type = 1;	// high pass
+			hiFilter.type = "highpass";
 			hiFilter.frequency.value = hiFilter.frequency.minValue;
 			
 			bandFilter = audioContext.createBiquadFilter();
-			bandFilter.type = 2;	// band pass
+			bandFilter.type = "bandpass";
 			bandFilter.Q.value = bandFilter.Q.minValue;
 			
 			musicSource.connect(loFilter);
