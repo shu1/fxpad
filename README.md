@@ -1,4 +1,4 @@
 fxpad
 =====
 
-DJ effects pad using WebAudio API
+DJ effects pad using Web Audio API
