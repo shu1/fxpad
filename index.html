@@ -13,20 +13,20 @@ SC.initialize({
 var canvas, context2d;
 
 function init() {
-console.log("init");
+	console.log("init");
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
-	
+
 	inputMan.x = canvas.width/2;
 	inputMan.y = canvas.height/2;
-	
-	animate();
+
+	draw();
 }
 
-function animate() {
+function draw() {
 	var canvasWidth = canvas.width, canvasHeight = canvas.height;
 	context2d.clearRect(0, 0, canvasWidth, canvasHeight);
-	
+
 	context2d.strokeStyle = "lightgray";
 	context2d.moveTo(0, 0);
 	context2d.lineTo(canvasWidth, canvasHeight);
@@ -37,22 +37,22 @@ function animate() {
 	context2d.moveTo(canvasWidth/2, 0);
 	context2d.lineTo(canvasWidth/2, canvasHeight);
 	context2d.stroke();
-	
+
 	if (beatMan.play) {
 		var x = inputMan.x, y = inputMan.y;
-		
+
 		if (inputMan.mouse) {
 			doFilters(x / canvasWidth, y / canvasHeight);
 		}
-		
+
 		context2d.fillStyle = "darkgray";
 		context2d.beginPath();
 		context2d.arc(x, y, 20, 0, Math.PI*2);
 		context2d.closePath();
 		context2d.stroke();
 	}
-	
-	requestAnimationFrame(animate);
+
+	requestAnimationFrame(draw);
 }
 
 var inputMan = {
@@ -63,7 +63,7 @@ var inputMan = {
 
 function mouseXY(event) {
 	var x, y;
-	
+
 	if (event.touches) {
 		x = event.touches[0].pageX;
 		y = event.touches[0].pageY;
@@ -72,10 +72,10 @@ function mouseXY(event) {
 		x = event.pageX;
 		y = event.pageY;
 	}
-	
+
 	inputMan.x = x - canvas.offsetLeft;
 	inputMan.y = y - canvas.offsetTop;
-	
+
 	event.preventDefault();
 }
 
@@ -83,7 +83,7 @@ function mouseDown(event) {
 	if (!beatMan.play) {
 		playMusic();
 	}
-	
+
 	mouseXY(event);
 	inputMan.mouse = true;
 }
@@ -165,62 +165,62 @@ function doFilters(x, y) {
 
 //	if (y < 0.5) {
 		var lo = 0.99, hi = 0.01;	// not max to prevent audio deterioration
-		
+
 		if (x < 0.5) {	// left half is low pass
 			lo = x * 2 * 0.8 + 0.2; // map 0 ~ 0.5 to 0.2 ~ 1
 		}
 		else if (x > 0.5) {	// right half is high pass
 			hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 		}
-		
+
 		bandFilter.Q.value = bandFilter.Q.minValue;
-		
+
 		loFilter.frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
 		hiFilter.frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
-		
+
 		loFilter.Q.value = res * 30;	// loFilter.Q.maxValue;
 		hiFilter.Q.value = res * 30;	// hiFilter.Q.maxValue;
 /*	}
 	else {
 		loFilter.frequency.value = loFilter.frequency.maxValue;
 		hiFilter.frequency.value = hiFilter.frequency.minValue;
-		
+
 		bandFilter.frequency.value = nyquist * Math.pow(2, noctaves * (x - 1));
 		bandFilter.Q.value = res;
 	}*/
 }
 
 function loadedMetadata(event) {
-console.log("loadedMetadata");
+	console.log("loadedMetadata");
 	if (window.AudioContext) {
 		if (!audio) {
 			audioContext = new AudioContext();
 			sampleRate = audioContext.sampleRate;
-			
+
 			audio = document.getElementById("music");
 			musicSource = audioContext.createMediaElementSource(audio);
 //			musicSource = audioContext.createBufferSource();
 //			loadBuffer(musicSource, audio.currentSrc);
 			musicSource.loop = true;
-			
+
 			loFilter = audioContext.createBiquadFilter();
 			loFilter.type = "lowpass";
 			loFilter.frequency.value = loFilter.frequency.maxValue;
-			
+
 			hiFilter = audioContext.createBiquadFilter();
 			hiFilter.type = "highpass";
 			hiFilter.frequency.value = hiFilter.frequency.minValue;
-			
+
 			bandFilter = audioContext.createBiquadFilter();
 			bandFilter.type = "bandpass";
 			bandFilter.Q.value = bandFilter.Q.minValue;
-			
+
 			musicSource.connect(loFilter);
 			loFilter.connect(hiFilter);
 			hiFilter.connect(bandFilter);
 			bandFilter.connect(audioContext.destination);
 		}
-		
+
 		if (beatMan.play) {
 			audio.play();
 		}
