@@ -173,7 +173,7 @@ function doFilters(x, y) {
 			hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 		}
 
-		bandFilter.Q.value = bandFilter.Q.minValue;
+//		bandFilter.Q.value = bandFilter.Q.minValue;
 
 		loFilter.frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
 		hiFilter.frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
@@ -205,15 +205,15 @@ function loadedMetadata(event) {
 
 			loFilter = audioContext.createBiquadFilter();
 			loFilter.type = "lowpass";
-			loFilter.frequency.value = loFilter.frequency.maxValue;
+//			loFilter.frequency.value = loFilter.frequency.maxValue;
 
 			hiFilter = audioContext.createBiquadFilter();
 			hiFilter.type = "highpass";
-			hiFilter.frequency.value = hiFilter.frequency.minValue;
+//			hiFilter.frequency.value = hiFilter.frequency.minValue;
 
 			bandFilter = audioContext.createBiquadFilter();
 			bandFilter.type = "bandpass";
-			bandFilter.Q.value = bandFilter.Q.minValue;
+//			bandFilter.Q.value = bandFilter.Q.minValue;
 
 			musicSource.connect(loFilter);
 			loFilter.connect(hiFilter);
