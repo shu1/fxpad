@@ -3,17 +3,14 @@
 <html>
 <head>
 <title>DJ effects pad</title>
-<script src="http://connect.soundcloud.com/sdk.js"></script>
 <script type="text/javascript">
-
-SC.initialize({
-	client_id: '28c66c838c6f68e374e707978b672fa8'
-});
+"use strict";
 
 var canvas, context2d;
 
 function init() {
 	console.log("init");
+
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
 
@@ -56,28 +53,11 @@ function draw() {
 }
 
 var inputMan = {
-	mouse: false,
-	x: 0,
-	y: 0
+	mouse:false,
+	track:0,
+	x:0,
+	y:0
 };
-
-function mouseXY(event) {
-	var x, y;
-
-	if (event.touches) {
-		x = event.touches[0].pageX;
-		y = event.touches[0].pageY;
-	}
-	else {
-		x = event.pageX;
-		y = event.pageY;
-	}
-
-	inputMan.x = x - canvas.offsetLeft;
-	inputMan.y = y - canvas.offsetTop;
-
-	event.preventDefault();
-}
 
 function mouseDown(event) {
 	if (!beatMan.play) {
@@ -86,6 +66,22 @@ function mouseDown(event) {
 
 	mouseXY(event);
 	inputMan.mouse = true;
+}
+
+function mouseXY(event) {
+	var x, y;
+	if (event.touches) {
+		x = event.touches[0].pageX;
+		y = event.touches[0].pageY;
+	} else {
+		x = event.pageX;
+		y = event.pageY;
+	}
+
+	inputMan.x = x - canvas.offsetLeft;
+	inputMan.y = y - canvas.offsetTop;
+
+	event.preventDefault();
 }
 
 function mouseMove(event) {
@@ -98,133 +94,74 @@ function mouseUp(event) {
 	inputMan.mouse = false;
 }
 
-var audio, audioContext, musicSource, loFilter, hiFilter, bandFilter;
+function keyDown(event) {
+	if (event.keyCode-49 <= beatMan.audios.length-1) {
+		inputMan.track = event.keyCode-49;
+		console.log("track " + beatMan.names[inputMan.track]);
+	}
+}
+
+var audioContext;
 var beatMan = {
-	play: false
+	names:[],
+	audios:[],
+	loFilters:[],
+	hiFilters:[],
+	sampleRate:0,
+	play:false
 };
 
-function loadBuffer(source, url, play) {
-	var request = new XMLHttpRequest();
-	request.open("get", url, true);
-	request.responseType = "arraybuffer";
-	request.onload = function() {
-		source.buffer = audioContext.createBuffer(request.response, false);
-		if (play) {
-			playMusic();
-		}
-	}
-	request.send();
-}
-
-function fileDrop(event) {
-	var file = event.dataTransfer.files[0];
-	if (file.type.match("audio/*") || file.type.match("video/ogg")) {
-		loadMusic(file);
-	}
-}
-
-function fileInput(files) {
-	loadMusic(files[0]);
-}
-
-function loadMusic(file) {
-	var reader = new FileReader();
-	reader.onload = function(event) {
-		musicSource.buffer = audioContext.createBuffer(event.target.result, false);
-		playMusic();
-	}
-	reader.readAsArrayBuffer(file);
-}
-
-function loadSoundCloud() {
-	var text = document.getElementById("text").value;
-	if (text) {
-		SC.get('/resolve', {url:text}, function(track) {
-			if (track.id) {
-				var src = "http://api.soundcloud.com/tracks/" + track.id + "/stream?client_id=28c66c838c6f68e374e707978b672fa8";
-				audio.src = src;
-//				loadBuffer(musicSource, src);
-			}
-		});
-	}
-	else {
-		playMusic();
-	}
-}
-
 function playMusic() {
-	audio.play();
-//	musicSource.noteOn(0);
+	for (var i = beatMan.audios.length-1; i >= 0; --i) {
+		beatMan.audios[i].play();
+	}
+
 	beatMan.play = true;
 }
 
 function doFilters(x, y) {
-	var nyquist = sampleRate / 2;
+	var nyquist = audioContext.sampleRate / 2;
 	var noctaves = Math.log(nyquist / 40) / Math.LN2;
 	var res = Math.abs(y - 0.5) * 2;	// map 0.5 to 0
 
-//	if (y < 0.5) {
-		var lo = 0.99, hi = 0.01;	// not max to prevent audio deterioration
+	var lo = 0.99, hi = 0.01;	// not max to prevent audio deterioration
 
-		if (x < 0.5) {	// left half is low pass
-			lo = x * 2 * 0.8 + 0.2; // map 0 ~ 0.5 to 0.2 ~ 1
-		}
-		else if (x > 0.5) {	// right half is high pass
-			hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
-		}
+	if (x < 0.5) {	// left half is low pass
+		lo = x * 2 * 0.8 + 0.2; // map 0 ~ 0.5 to 0.2 ~ 1
+	}
+	else if (x > 0.5) {	// right half is high pass
+		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
+	}
 
-//		bandFilter.Q.value = bandFilter.Q.minValue;
+	beatMan.loFilters[inputMan.track].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
+	beatMan.hiFilters[inputMan.track].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
 
-		loFilter.frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
-		hiFilter.frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
-
-		loFilter.Q.value = res * 30;	// loFilter.Q.maxValue;
-		hiFilter.Q.value = res * 30;	// hiFilter.Q.maxValue;
-/*	}
-	else {
-		loFilter.frequency.value = loFilter.frequency.maxValue;
-		hiFilter.frequency.value = hiFilter.frequency.minValue;
-
-		bandFilter.frequency.value = nyquist * Math.pow(2, noctaves * (x - 1));
-		bandFilter.Q.value = res;
-	}*/
+	beatMan.loFilters[inputMan.track].Q.value = res * 30;	// loFilter.Q.maxValue;
+	beatMan.hiFilters[inputMan.track].Q.value = res * 30;	// hiFilter.Q.maxValue;
 }
 
 function loadedMetadata(event) {
-	console.log("loadedMetadata");
-	if (window.AudioContext) {
-		if (!audio) {
-			audioContext = new AudioContext();
-			sampleRate = audioContext.sampleRate;
+	console.log("loadedMetadata " + event.target.id);
 
-			audio = document.getElementById("music");
-			musicSource = audioContext.createMediaElementSource(audio);
-//			musicSource = audioContext.createBufferSource();
-//			loadBuffer(musicSource, audio.currentSrc);
-			musicSource.loop = true;
+	audioContext = audioContext || new AudioContext();
 
-			loFilter = audioContext.createBiquadFilter();
-			loFilter.type = "lowpass";
-//			loFilter.frequency.value = loFilter.frequency.maxValue;
+	var audio = event.target;
+	var source = audioContext.createMediaElementSource(audio);
 
-			hiFilter = audioContext.createBiquadFilter();
-			hiFilter.type = "highpass";
-//			hiFilter.frequency.value = hiFilter.frequency.minValue;
+	var loFilter = audioContext.createBiquadFilter();
+	loFilter.type = "lowpass";
 
-			bandFilter = audioContext.createBiquadFilter();
-			bandFilter.type = "bandpass";
-//			bandFilter.Q.value = bandFilter.Q.minValue;
+	var hiFilter = audioContext.createBiquadFilter();
+	hiFilter.type = "highpass";
 
-			musicSource.connect(loFilter);
-			loFilter.connect(hiFilter);
-			hiFilter.connect(bandFilter);
-			bandFilter.connect(audioContext.destination);
-		}
+	source.connect(loFilter);
+	loFilter.connect(hiFilter);
+	hiFilter.connect(audioContext.destination);
 
-		if (beatMan.play) {
-			audio.play();
-		}
-	}
+	beatMan.audios.push(audio);
+	beatMan.loFilters.push(loFilter);
+	beatMan.hiFilters.push(hiFilter);
+	beatMan.names.push(event.target.id);
 }
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -235,21 +172,17 @@ ga('create', 'UA-7050108-2', 'auto');
 ga('send', 'pageview');
 </script>
 </head>
-<body onload="init()" onmouseup="mouseUp(event)" ontouchend="mouseUp(event)">
+<body onload="init()" onmouseup="mouseUp(event)" ontouchend="mouseUp(event)" onkeydown="keyDown(event)">
 	<br/>
 	<center>
-		<audio id="music" onended="this.play()" onloadedmetadata="loadedMetadata(event)">
-			<source src="http://api.soundcloud.com/tracks/16166473/stream?client_id=28c66c838c6f68e374e707978b672fa8"/>
-			Please use a browser that supports HTML5 Audio
-		</audio>
+		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)"></audio>
+		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)"></audio>
+		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)"></audio>
 		<canvas id="canvas" width="640" height="320" style="border-style:solid"
 			onmousedown="mouseDown(event)" onmousemove="mouseMove(event)"
 			ontouchstart="mouseDown(event)" ontouchmove="mouseMove(event)"
 			ondragenter="event.stopPropagation(); event.preventDefault();"
-			ondragover="event.stopPropagation(); event.preventDefault();"
-			ondrop="event.stopPropagation(); event.preventDefault(); fileDrop(event);"
-		>Please use a browser that supports HTML5 Canvas</canvas><br/>
-		SoundCloud url: <input type="text" id="text" value="http://soundcloud.com/henrikgrunden/avicii-vs-journey-dont-stop" style="width:460px" onkeypress="if(event.keyCode==13){loadSoundCloud()}"/><br/>
+			ondragover="event.stopPropagation(); event.preventDefault();"></canvas>
 	</center>
 	<br/>
 	<div style="width:480px; margin-left:auto; margin-right:auto">
