@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- DJ effects pad for Google HTML5 Hackathon 2011 by Shuichi Aizawa -->
+<!-- DJ effects pad for Sony Music Hackathon 2015 by Shuichi Aizawa -->
 <html>
 <head>
 <title>DJ effects pad</title>
@@ -35,7 +35,7 @@ function draw() {
 	context2d.lineTo(canvasWidth/2, canvasHeight);
 	context2d.stroke();
 
-	if (beatMan.play) {
+	if (soundMan.play) {
 		var x = inputMan.x, y = inputMan.y;
 
 		if (inputMan.mouse) {
@@ -54,13 +54,12 @@ function draw() {
 
 var inputMan = {
 	mouse:false,
-	track:0,
 	x:0,
 	y:0
 };
 
 function mouseDown(event) {
-	if (!beatMan.play) {
+	if (!soundMan.play) {
 		playMusic();
 	}
 
@@ -95,15 +94,18 @@ function mouseUp(event) {
 }
 
 function keyDown(event) {
-	if (event.keyCode-49 <= beatMan.audios.length-1) {
-		inputMan.track = event.keyCode-49;
-		console.log("track " + beatMan.names[inputMan.track]);
+	var track = event.keyCode-49;
+	if (track >= 0 && track <= soundMan.audios.length-1) {
+		soundMan.tracks[track] = !soundMan.tracks[track];
+		var text = soundMan.tracks[track] ? " on" : " off";
+		console.log(soundMan.names[track] + text);
 	}
 }
 
 var audioContext;
-var beatMan = {
+var soundMan = {
 	names:[],
+	tracks:[],
 	audios:[],
 	loFilters:[],
 	hiFilters:[],
@@ -112,11 +114,11 @@ var beatMan = {
 };
 
 function playMusic() {
-	for (var i = beatMan.audios.length-1; i >= 0; --i) {
-		beatMan.audios[i].play();
+	for (var i = soundMan.audios.length-1; i >= 0; --i) {
+		soundMan.audios[i].play();
 	}
 
-	beatMan.play = true;
+	soundMan.play = true;
 }
 
 function doFilters(x, y) {
@@ -133,11 +135,15 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	beatMan.loFilters[inputMan.track].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
-	beatMan.hiFilters[inputMan.track].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
+	for (var i = soundMan.audios.length-1; i >= 0; --i) {
+		if (soundMan.tracks[i]) {
+			soundMan.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
+			soundMan.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
 
-	beatMan.loFilters[inputMan.track].Q.value = res * 30;	// loFilter.Q.maxValue;
-	beatMan.hiFilters[inputMan.track].Q.value = res * 30;	// hiFilter.Q.maxValue;
+			soundMan.loFilters[i].Q.value = res * 30;	// loFilter.Q.maxValue;
+			soundMan.hiFilters[i].Q.value = res * 30;	// hiFilter.Q.maxValue;
+		}
+	}
 }
 
 function loadedMetadata(event) {
@@ -150,18 +156,23 @@ function loadedMetadata(event) {
 
 	var loFilter = audioContext.createBiquadFilter();
 	loFilter.type = "lowpass";
+	loFilter.Q.value = 0;
+	loFilter.frequency.value = audioContext.sampleRate;
 
 	var hiFilter = audioContext.createBiquadFilter();
 	hiFilter.type = "highpass";
+	hiFilter.Q.value = 0;
+	hiFilter.frequency.value = 0;
 
 	source.connect(loFilter);
 	loFilter.connect(hiFilter);
 	hiFilter.connect(audioContext.destination);
 
-	beatMan.audios.push(audio);
-	beatMan.loFilters.push(loFilter);
-	beatMan.hiFilters.push(hiFilter);
-	beatMan.names.push(event.target.id);
+	soundMan.audios.push(audio);
+	soundMan.loFilters.push(loFilter);
+	soundMan.hiFilters.push(hiFilter);
+	soundMan.names.push(event.target.id);
+	soundMan.tracks.push(true);
 }
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
