@@ -6,26 +6,44 @@
 <script type="text/javascript">
 "use strict";
 
-var canvas, context2d, audioContext;
-
-var inputMan = {
-	click:false,
-	x:0,
-	y:0
-};
+var canvas, context2d, audioContext, inputMan={};
 
 var soundMan = {
-	names:[],
-	tracks:[],
-	audios:[],
+	sources:[],
+	filterOn:[],
 	loFilters:[],
-	hiFilters:[],
-	sampleRate:0,
-	play:false
+	hiFilters:[]
 };
 
-window.onload=function() {
+window.onload = function() {
 	console.log("init");
+
+	function loadAudio(name, file) {
+		if (window.AudioContext) {
+/*			var audio = document.createElement("audio");
+			audio.onloadedmetadata = loadedMetadata;
+			audio.id = name;
+			audio.src = file;
+*/		} else {
+			var request = new XMLHttpRequest();
+			request.open("get", file, true);
+			request.responseType = "arraybuffer";
+			request.onload = function() {
+				console.log("loadedBuffer " + name);
+
+				audioContext = audioContext || new webkitAudioContext();
+				var source = audioContext.createBufferSource();
+				source.id = name;
+				source.buffer = audioContext.createBuffer(request.response, false);
+				soundMan.sources.push(source);
+				loadFilters(source);
+			}
+			request.send();
+		}
+	}
+	loadAudio("Music", "music.wav");
+	loadAudio("Vocals", "vocals.wav");
+	loadAudio("BG Vocals", "bgvocals.wav");
 
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
@@ -42,6 +60,33 @@ window.onload=function() {
 	inputMan.y = canvas.height/2;
 
 	draw();
+}
+
+function loadFilters(source) {
+	var loFilter = audioContext.createBiquadFilter();
+	loFilter.type = "lowpass";
+	loFilter.frequency.value = audioContext.sampleRate/2;
+
+	var hiFilter = audioContext.createBiquadFilter();
+	hiFilter.type = "highpass";
+	hiFilter.frequency.value = 10;
+
+	source.connect(loFilter);
+	loFilter.connect(hiFilter);
+	hiFilter.connect(audioContext.destination);
+
+	soundMan.loFilters.push(loFilter);
+	soundMan.hiFilters.push(hiFilter);
+	soundMan.filterOn.push(true);
+}
+
+function loadedMetadata(event) {
+	console.log("loadedMetadata " + event.target.id);
+
+	audioContext = audioContext || new AudioContext();
+	var source = audioContext.createMediaElementSource(event.target);
+	soundMan.sources.push(event.target);
+	loadFilters(source);
 }
 
 function draw() {
@@ -78,7 +123,14 @@ function draw() {
 
 function mouseDown(event) {
 	if (!soundMan.play) {
-		playMusic();
+		for (var i = soundMan.sources.length-1; i >= 0; --i) {
+			if (window.AudioContext) {
+				soundMan.sources[i].play();
+			} else {
+				soundMan.sources[i].noteOn(0);
+			}
+			soundMan.play = true;
+		}
 	}
 
 	mouseXY(event);
@@ -112,19 +164,11 @@ function mouseUp(event) {
 }
 
 function keyDown(event) {
-	var track = event.keyCode-49;
-	if (track >= 0 && track <= soundMan.tracks.length-1) {
-		soundMan.tracks[track] = !soundMan.tracks[track];
-		console.log(soundMan.names[track] + (soundMan.tracks[track] ? " on" : " off"));
+	var i = event.keyCode-49;
+	if (i >= 0 && i <= soundMan.filterOn.length-1) {
+		soundMan.filterOn[i] = !soundMan.filterOn[i];
+		console.log(soundMan.sources[i].id + (soundMan.filterOn[i] ? " on" : " off"));
 	}
-}
-
-function playMusic() {
-	for (var i = soundMan.audios.length-1; i >= 0; --i) {
-		soundMan.audios[i].play();
-	}
-
-	soundMan.play = true;
 }
 
 function doFilters(x, y) {
@@ -141,8 +185,8 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	for (var i = soundMan.tracks.length-1; i >= 0; --i) {
-		if (soundMan.tracks[i]) {
+	for (var i = soundMan.filterOn.length-1; i >= 0; --i) {
+		if (soundMan.filterOn[i]) {
 			soundMan.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
 			soundMan.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
 
@@ -150,34 +194,6 @@ function doFilters(x, y) {
 			soundMan.hiFilters[i].Q.value = res * 30;	// hiFilter.Q.maxValue;
 		}
 	}
-}
-
-function loadedMetadata(event) {
-	console.log("loadedMetadata " + event.target.id);
-
-	var AudioContext = window.AudioContext || window.webkitAudioContext;
-	audioContext = audioContext || new AudioContext();
-
-	var audio = event.target;
-	var source = audioContext.createMediaElementSource(audio);
-
-	var loFilter = audioContext.createBiquadFilter();
-	loFilter.type = "lowpass";
-	loFilter.frequency.value = audioContext.sampleRate/2;
-
-	var hiFilter = audioContext.createBiquadFilter();
-	hiFilter.type = "highpass";
-	hiFilter.frequency.value = 10;
-
-	source.connect(loFilter);
-	loFilter.connect(hiFilter);
-	hiFilter.connect(audioContext.destination);
-
-	soundMan.audios.push(audio);
-	soundMan.loFilters.push(loFilter);
-	soundMan.hiFilters.push(hiFilter);
-	soundMan.names.push(event.target.id);
-	soundMan.tracks.push(true);
 }
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -191,9 +207,9 @@ ga('send', 'pageview');
 <body>
 	<br/>
 	<center>
-		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
-		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
-		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
+		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)" preload controls></audio><br/>
+		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)" preload controls></audio><br/>
+		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)" preload controls></audio><br/>
 		<canvas id="canvas" width="640" height="320" style="border-style:solid"></canvas>
 	</center>
 	<br/>
