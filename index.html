@@ -156,13 +156,11 @@ function loadedMetadata(event) {
 
 	var loFilter = audioContext.createBiquadFilter();
 	loFilter.type = "lowpass";
-	loFilter.Q.value = 0;
-	loFilter.frequency.value = audioContext.sampleRate;
+	loFilter.frequency.value = audioContext.sampleRate/2;
 
 	var hiFilter = audioContext.createBiquadFilter();
 	hiFilter.type = "highpass";
-	hiFilter.Q.value = 0;
-	hiFilter.frequency.value = 0;
+	hiFilter.frequency.value = 10;
 
 	source.connect(loFilter);
 	loFilter.connect(hiFilter);
@@ -186,9 +184,9 @@ ga('send', 'pageview');
 <body onload="init()" onmouseup="mouseUp(event)" ontouchend="mouseUp(event)" onkeydown="keyDown(event)">
 	<br/>
 	<center>
-		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)"></audio>
-		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)"></audio>
-		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)"></audio>
+		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
+		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
+		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
 		<canvas id="canvas" width="640" height="320" style="border-style:solid"
 			onmousedown="mouseDown(event)" onmousemove="mouseMove(event)"
 			ontouchstart="mouseDown(event)" ontouchmove="mouseMove(event)"
