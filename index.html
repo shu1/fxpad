@@ -105,70 +105,14 @@ function draw() {
 	context2d.stroke();
 
 	if (soundMan.play) {
-		var x = inputMan.x, y = inputMan.y;
-
-		if (inputMan.click) {
-			doFilters(x / canvasWidth, y / canvasHeight);
-		}
-
 		context2d.fillStyle = "darkgray";
 		context2d.beginPath();
-		context2d.arc(x, y, 20, 0, Math.PI*2);
+		context2d.arc(inputMan.x, inputMan.y, 20, 0, Math.PI*2);
 		context2d.closePath();
 		context2d.stroke();
 	}
 
 	requestAnimationFrame(draw);
-}
-
-function mouseDown(event) {
-	if (!soundMan.play) {
-		for (var i = soundMan.sources.length-1; i >= 0; --i) {
-			if (window.AudioContext) {
-				soundMan.sources[i].play();
-			} else {
-				soundMan.sources[i].noteOn(0);
-			}
-			soundMan.play = true;
-		}
-	}
-
-	mouseXY(event);
-	inputMan.click = true;
-}
-
-function mouseXY(event) {
-	var x, y;
-	if (event.touches) {
-		x = event.touches[0].pageX;
-		y = event.touches[0].pageY;
-	} else {
-		x = event.pageX;
-		y = event.pageY;
-	}
-
-	inputMan.x = x - canvas.offsetLeft;
-	inputMan.y = y - canvas.offsetTop;
-
-	event.preventDefault();
-}
-
-function mouseMove(event) {
-	if (inputMan.click) {
-		mouseXY(event);
-	}
-}
-
-function mouseUp(event) {
-	inputMan.click = false;
-}
-
-function keyDown(event) {
-	var i = event.keyCode-49;
-	if (i >= 0 && i <= soundMan.filterOn.length-1) {
-		soundMan.filterOn[i] = !soundMan.filterOn[i];
-		console.log(soundMan.sources[i].id + (soundMan.filterOn[i] ? " on" : " off"));
-	}
 }
 
 function doFilters(x, y) {
@@ -193,6 +137,56 @@ function doFilters(x, y) {
 			soundMan.loFilters[i].Q.value = res * 30;	// loFilter.Q.maxValue;
 			soundMan.hiFilters[i].Q.value = res * 30;	// hiFilter.Q.maxValue;
 		}
+	}
+}
+
+function mouseDown(event) {
+	if (!soundMan.play) {
+		for (var i = soundMan.sources.length-1; i >= 0; --i) {
+			if (window.AudioContext) {
+				soundMan.sources[i].play();
+			} else {
+				soundMan.sources[i].noteOn(0);
+			}
+			soundMan.play = true;
+		}
+	}
+
+	mouseXY(event);
+	inputMan.click = true;
+}
+
+function mouseXY(event) {
+	if (event.touches) {
+		inputMan.x = event.touches[0].pageX;
+		inputMan.y = event.touches[0].pageY;
+	} else {
+		inputMan.x = event.pageX;
+		inputMan.y = event.pageY;
+	}
+
+	inputMan.x -= canvas.offsetLeft;
+	inputMan.y -= canvas.offsetTop;
+
+	doFilters(inputMan.x / canvas.width, inputMan.y / canvas.height);
+	event.preventDefault();
+}
+
+function mouseMove(event) {
+	if (inputMan.click) {
+		mouseXY(event);
+	}
+}
+
+function mouseUp(event) {
+	inputMan.click = false;
+}
+
+function keyDown(event) {
+	var i = event.keyCode-49;
+	if (i >= 0 && i <= soundMan.filterOn.length-1) {
+		soundMan.filterOn[i] = !soundMan.filterOn[i];
+		console.log(soundMan.sources[i].id + (soundMan.filterOn[i] ? " on" : " off"));
 	}
 }
 
