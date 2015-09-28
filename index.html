@@ -95,10 +95,9 @@ function mouseUp(event) {
 
 function keyDown(event) {
 	var track = event.keyCode-49;
-	if (track >= 0 && track <= soundMan.audios.length-1) {
+	if (track >= 0 && track <= soundMan.tracks.length-1) {
 		soundMan.tracks[track] = !soundMan.tracks[track];
-		var text = soundMan.tracks[track] ? " on" : " off";
-		console.log(soundMan.names[track] + text);
+		console.log(soundMan.names[track] + (soundMan.tracks[track] ? " on" : " off"));
 	}
 }
 
@@ -135,7 +134,7 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	for (var i = soundMan.audios.length-1; i >= 0; --i) {
+	for (var i = soundMan.tracks.length-1; i >= 0; --i) {
 		if (soundMan.tracks[i]) {
 			soundMan.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
 			soundMan.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
@@ -149,6 +148,7 @@ function doFilters(x, y) {
 function loadedMetadata(event) {
 	console.log("loadedMetadata " + event.target.id);
 
+	var AudioContext = window.AudioContext || window.webkitAudioContext;
 	audioContext = audioContext || new AudioContext();
 
 	var audio = event.target;
