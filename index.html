@@ -62,6 +62,15 @@ window.onload = function() {
 	draw();
 }
 
+function loadedMetadata(event) {
+	console.log("loadedMetadata " + event.target.id);
+
+	audioContext = audioContext || new AudioContext();
+	var source = audioContext.createMediaElementSource(event.target);
+	soundMan.sources.push(event.target);
+	loadFilters(source);
+}
+
 function loadFilters(source) {
 	var loFilter = audioContext.createBiquadFilter();
 	loFilter.type = "lowpass";
@@ -78,15 +87,6 @@ function loadFilters(source) {
 	soundMan.loFilters.push(loFilter);
 	soundMan.hiFilters.push(hiFilter);
 	soundMan.filterOn.push(true);
-}
-
-function loadedMetadata(event) {
-	console.log("loadedMetadata " + event.target.id);
-
-	audioContext = audioContext || new AudioContext();
-	var source = audioContext.createMediaElementSource(event.target);
-	soundMan.sources.push(event.target);
-	loadFilters(source);
 }
 
 function draw() {
@@ -140,7 +140,7 @@ function doFilters(x, y) {
 	}
 }
 
-function mouseDown(event) {
+function play() {
 	if (!soundMan.play) {
 		for (var i = soundMan.sources.length-1; i >= 0; --i) {
 			if (window.AudioContext) {
@@ -151,7 +151,9 @@ function mouseDown(event) {
 			soundMan.play = true;
 		}
 	}
+}
 
+function mouseDown(event) {
 	mouseXY(event);
 	inputMan.click = true;
 }
@@ -200,8 +202,9 @@ ga('send', 'pageview');
 </head>
 <body>
 	<br/>
-	<center>
+	<center style="font-family:sans-serif">
 		<canvas id="canvas" width="640" height="320" style="border-style:solid"></canvas>
+		<div onclick="play()">Play</div>
 	</center>
 	<br/>
 	<div style="width:480px; margin-left:auto; margin-right:auto">
