@@ -20,11 +20,11 @@ window.onload = function() {
 
 	function loadAudio(name, file) {
 		if (window.AudioContext) {
-/*			var audio = document.createElement("audio");
+			var audio = document.createElement("audio");
 			audio.onloadedmetadata = loadedMetadata;
 			audio.id = name;
 			audio.src = file;
-*/		} else {
+		} else {
 			var request = new XMLHttpRequest();
 			request.open("get", file, true);
 			request.responseType = "arraybuffer";
@@ -207,9 +207,6 @@ ga('send', 'pageview');
 <body>
 	<br/>
 	<center>
-		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)" preload controls></audio><br/>
-		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)" preload controls></audio><br/>
-		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)" preload controls></audio><br/>
 		<canvas id="canvas" width="640" height="320" style="border-style:solid"></canvas>
 	</center>
 	<br/>
