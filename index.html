@@ -6,13 +6,37 @@
 <script type="text/javascript">
 "use strict";
 
-var canvas, context2d;
+var canvas, context2d, audioContext;
 
-function init() {
+var inputMan = {
+	click:false,
+	x:0,
+	y:0
+};
+
+var soundMan = {
+	names:[],
+	tracks:[],
+	audios:[],
+	loFilters:[],
+	hiFilters:[],
+	sampleRate:0,
+	play:false
+};
+
+window.onload=function() {
 	console.log("init");
 
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
+
+	canvas.addEventListener("touchstart", mouseDown);
+	canvas.addEventListener("touchmove", mouseMove);
+	window.addEventListener("touchend", mouseUp);
+	canvas.addEventListener("mousedown", mouseDown);
+	canvas.addEventListener("mousemove", mouseMove);
+	window.addEventListener("mouseup", mouseUp);
+	window.addEventListener("keydown", keyDown);
 
 	inputMan.x = canvas.width/2;
 	inputMan.y = canvas.height/2;
@@ -38,7 +62,7 @@ function draw() {
 	if (soundMan.play) {
 		var x = inputMan.x, y = inputMan.y;
 
-		if (inputMan.mouse) {
+		if (inputMan.click) {
 			doFilters(x / canvasWidth, y / canvasHeight);
 		}
 
@@ -52,19 +76,13 @@ function draw() {
 	requestAnimationFrame(draw);
 }
 
-var inputMan = {
-	mouse:false,
-	x:0,
-	y:0
-};
-
 function mouseDown(event) {
 	if (!soundMan.play) {
 		playMusic();
 	}
 
 	mouseXY(event);
-	inputMan.mouse = true;
+	inputMan.click = true;
 }
 
 function mouseXY(event) {
@@ -84,13 +102,13 @@ function mouseXY(event) {
 }
 
 function mouseMove(event) {
-	if (inputMan.mouse) {
+	if (inputMan.click) {
 		mouseXY(event);
 	}
 }
 
 function mouseUp(event) {
-	inputMan.mouse = false;
+	inputMan.click = false;
 }
 
 function keyDown(event) {
@@ -100,17 +118,6 @@ function keyDown(event) {
 		console.log(soundMan.names[track] + (soundMan.tracks[track] ? " on" : " off"));
 	}
 }
-
-var audioContext;
-var soundMan = {
-	names:[],
-	tracks:[],
-	audios:[],
-	loFilters:[],
-	hiFilters:[],
-	sampleRate:0,
-	play:false
-};
 
 function playMusic() {
 	for (var i = soundMan.audios.length-1; i >= 0; --i) {
@@ -181,17 +188,13 @@ ga('create', 'UA-7050108-2', 'auto');
 ga('send', 'pageview');
 </script>
 </head>
-<body onload="init()" onmouseup="mouseUp(event)" ontouchend="mouseUp(event)" onkeydown="keyDown(event)">
+<body>
 	<br/>
 	<center>
 		<audio id="Music" src="music.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
 		<audio id="Vocals" src="vocals.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
 		<audio id="Background Vocals" src="bgvocals.wav" onloadedmetadata="loadedMetadata(event)" preload></audio><br/>
-		<canvas id="canvas" width="640" height="320" style="border-style:solid"
-			onmousedown="mouseDown(event)" onmousemove="mouseMove(event)"
-			ontouchstart="mouseDown(event)" ontouchmove="mouseMove(event)"
-			ondragenter="event.stopPropagation(); event.preventDefault();"
-			ondragover="event.stopPropagation(); event.preventDefault();"></canvas>
+		<canvas id="canvas" width="640" height="320" style="border-style:solid"></canvas>
 	</center>
 	<br/>
 	<div style="width:480px; margin-left:auto; margin-right:auto">
