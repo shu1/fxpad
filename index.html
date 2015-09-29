@@ -9,13 +9,14 @@
 <script type="text/javascript">
 "use strict";
 
-var canvas, context2d, audioContext;
+var canvas, audioContext;
 
 var vars = {
+	textHeight:18,
 	length:0,
 	time:0,
-	xs:[],
-	ys:[],
+	xys:[],
+	texts:[],
 	sources:[],
 	filterOn:[],
 	loFilters:[],
@@ -28,39 +29,11 @@ var vars = {
 };
 
 window.onload = function() {
-	console.log("init");
-
-	function loadAudio(name, file) {
-		vars.length++;
-
-		if (window.AudioContext) {
-			var audio = document.createElement("audio");
-			audio.onloadedmetadata = loadedMetadata;
-			audio.id = name;
-			audio.src = file;
-		} else {
-			var request = new XMLHttpRequest();
-			request.open("get", file, true);
-			request.responseType = "arraybuffer";
-			request.onload = function() {
-				console.log("loadedBuffer " + name);
-
-				audioContext = audioContext || new webkitAudioContext();
-				var source = audioContext.createBufferSource();
-				source.id = name;
-				source.buffer = audioContext.createBuffer(request.response, false);
-				vars.sources.push(source);
-				loadFilters(source);
-			}
-			request.send();
-		}
-	}
 	loadAudio("Music", "music.wav");
 	loadAudio("Vocals", "vocals.wav");
 	loadAudio("BG Vocals", "bgvocals.wav");
 
 	canvas = document.getElementById("canvas");
-	context2d = canvas.getContext("2d");
 
 	canvas.addEventListener("touchstart", mouseDown);
 	canvas.addEventListener("touchmove", mouseMove);
@@ -71,43 +44,75 @@ window.onload = function() {
 	window.addEventListener("keydown", keyDown);
 
 	draw(0);
+
+	function loadAudio(name, file) {
+		vars.length++;
+
+		if (window.AudioContext) {
+			var audio = document.createElement("audio");
+			audio.onloadedmetadata = loadedMetadata;
+			audio.name = name;
+			audio.src = file;
+		} else {
+			var request = new XMLHttpRequest();
+			request.open("get", file, true);
+			request.responseType = "arraybuffer";
+			request.onload = function() {
+				audioContext = audioContext || new webkitAudioContext();
+				var source = audioContext.createBufferSource();
+				source.buffer = audioContext.createBuffer(request.response, false);
+				source.name = name;
+				vars.sources.push(source);
+				setupFilters(source);
+			}
+			request.send();
+		}
+	}
 }
 
 function loadedMetadata(event) {
-	console.log("loadedMetadata " + event.target.id);
-
 	audioContext = audioContext || new AudioContext();
 	var source = audioContext.createMediaElementSource(event.target);
 	vars.sources.push(event.target);
-	loadFilters(source);
+	setupFilters(source);
 }
 
-function loadFilters(source) {
+function setupFilters(source) {
 	var loFilter = audioContext.createBiquadFilter();
 	loFilter.type = "lowpass";
 	loFilter.frequency.value = audioContext.sampleRate/2;
+	vars.loFilters.push(loFilter);
 
 	var hiFilter = audioContext.createBiquadFilter();
 	hiFilter.type = "highpass";
 	hiFilter.frequency.value = 10;
+	vars.hiFilters.push(hiFilter);
 
 	source.connect(loFilter);
 	loFilter.connect(hiFilter);
 	hiFilter.connect(audioContext.destination);
 
-	vars.loFilters.push(loFilter);
-	vars.hiFilters.push(hiFilter);
 	vars.filterOn.push(true);
+	vars.xys.push({x:0.5, y:0.5});
+	setTexts();
+	draw(0);
+}
 
-	vars.xs.push(0.5);
-	vars.ys.push(0.5);
+function setTexts() {
+	var context2d = canvas.getContext("2d");
+	var cellWidth = canvas.width / vars.sources.length;
+
+	for (var i = vars.sources.length-1; i >= 0; --i) {
+		var font = context2d.font = (vars.filterOn[i] ? "bold " : "") + vars.textHeight + "pt sans-serif";
+		var width = context2d.measureText(vars.sources[i].name).width;
+		var x = (cellWidth - width)/2 + cellWidth*i;
+		vars.texts[i] = {font:font, x:x, x2:x+width};
+	}
 }
 
 function draw(time) {
 	if (!time || time > vars.time) {
-		console.log(time - vars.time);
-
-		var canvasWidth = canvas.width, canvasHeight = canvas.height;
+		var canvasWidth = canvas.width, canvasHeight = canvas.height, context2d = canvas.getContext("2d");
 		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		context2d.strokeStyle = "lightgray";
@@ -125,9 +130,16 @@ function draw(time) {
 			for (var i = vars.length-1; i >= 0; --i) {
 				context2d.strokeStyle = vars.colors[i];
 				context2d.beginPath();
-				context2d.arc(vars.xs[i] * canvasWidth, vars.ys[i] * canvasHeight, 20, 0, Math.PI*2);
+				context2d.arc(vars.xys[i].x * canvasWidth, vars.xys[i].y * canvasHeight, 20, 0, Math.PI*2);
 				context2d.stroke();
 			}
+		}
+
+		var y = canvasHeight-2;
+		for (var i = vars.sources.length-1; i >= 0; --i) {
+			context2d.fillStyle = vars.colors[i];
+			context2d.font = vars.texts[i].font;
+			context2d.fillText(vars.sources[i].name, vars.texts[i].x, y);
 		}
 	}
 	vars.time = time;
@@ -155,8 +167,7 @@ function doFilters(x, y) {
 			vars.loFilters[i].Q.value = res * 30;
 			vars.hiFilters[i].Q.value = res * 30;
 
-			vars.xs[i] = x;
-			vars.ys[i] = y;
+			vars.xys[i] = {x:x,y:y};
 		}
 	}
 }
@@ -177,41 +188,57 @@ function play() {
 
 function mouseDown(event) {
 	mouseXY(event);
+
+	if (vars.y > canvas.height - vars.textHeight) {
+		for (var i = vars.length-1; i >= 0; --i) {
+			if (vars.x > vars.texts[i].x && vars.x < vars.texts[i].x2) {
+				vars.filterOn[i] = !vars.filterOn[i];
+				setTexts();
+				vars.drag = true;
+			}
+		}
+	}
+
+	if (!vars.drag) {
+		doFilters(vars.x / canvas.width, vars.y / canvas.height);
+	}
+
 	vars.click = true;
 }
 
 function mouseXY(event) {
-	var x, y;
 	if (event.touches) {
-		x = event.touches[0].pageX;
-		y = event.touches[0].pageY;
+		vars.x = event.touches[0].pageX;
+		vars.y = event.touches[0].pageY;
 	} else {
-		x = event.pageX;
-		y = event.pageY;
+		vars.x = event.pageX;
+		vars.y = event.pageY;
 	}
-	x -= canvas.offsetLeft;
-	y -= canvas.offsetTop;
+	vars.x -= canvas.offsetLeft;
+	vars.y -= canvas.offsetTop;
 
-	doFilters(x / canvas.width, y / canvas.height);
 	requestAnimationFrame(draw);
 	event.preventDefault();
 }
 
 function mouseMove(event) {
-	if (vars.click) {
+	if (vars.click && !vars.drag) {
 		mouseXY(event);
+		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
 }
 
 function mouseUp(event) {
 	vars.click = false;
+	vars.drag = false;
 }
 
 function keyDown(event) {
 	var i = event.keyCode-49;
-	if (i >= 0 && i <= vars.length-1) {
+	if (i >= 0 && i <= vars.filterOn.length-1) {
 		vars.filterOn[i] = !vars.filterOn[i];
-		console.log(vars.sources[i].id + (vars.filterOn[i] ? " on" : " off"));
+		setTexts();
+		draw(0);
 	}
 }
 
