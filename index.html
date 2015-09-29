@@ -6,13 +6,20 @@
 <script type="text/javascript">
 "use strict";
 
-var canvas, context2d, audioContext, inputMan={};
+var canvas, context2d, audioContext;
 
-var soundMan = {
+var vars = {
+	xs:[],
+	ys:[],
 	sources:[],
 	filterOn:[],
 	loFilters:[],
-	hiFilters:[]
+	hiFilters:[],
+	colors:[
+		"rgba(255,0,0,0.5)",
+		"rgba(0,255,0,0.5)",
+		"rgba(0,0,255,0.5)"
+	]
 };
 
 window.onload = function() {
@@ -35,7 +42,7 @@ window.onload = function() {
 				var source = audioContext.createBufferSource();
 				source.id = name;
 				source.buffer = audioContext.createBuffer(request.response, false);
-				soundMan.sources.push(source);
+				vars.sources.push(source);
 				loadFilters(source);
 			}
 			request.send();
@@ -56,9 +63,6 @@ window.onload = function() {
 	window.addEventListener("mouseup", mouseUp);
 	window.addEventListener("keydown", keyDown);
 
-	inputMan.x = canvas.width/2;
-	inputMan.y = canvas.height/2;
-
 	draw();
 }
 
@@ -67,7 +71,7 @@ function loadedMetadata(event) {
 
 	audioContext = audioContext || new AudioContext();
 	var source = audioContext.createMediaElementSource(event.target);
-	soundMan.sources.push(event.target);
+	vars.sources.push(event.target);
 	loadFilters(source);
 }
 
@@ -84,34 +88,39 @@ function loadFilters(source) {
 	loFilter.connect(hiFilter);
 	hiFilter.connect(audioContext.destination);
 
-	soundMan.loFilters.push(loFilter);
-	soundMan.hiFilters.push(hiFilter);
-	soundMan.filterOn.push(true);
+	vars.loFilters.push(loFilter);
+	vars.hiFilters.push(hiFilter);
+	vars.filterOn.push(true);
+
+	vars.xs.push(0.5);
+	vars.ys.push(0.5);
 }
 
-function draw() {
-	var canvasWidth = canvas.width, canvasHeight = canvas.height;
-	context2d.clearRect(0, 0, canvasWidth, canvasHeight);
+function draw(time) {
+	if (!time || vars.play) {
+		var canvasWidth = canvas.width, canvasHeight = canvas.height;
+		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
-	context2d.strokeStyle = "lightgray";
-	context2d.moveTo(0, 0);
-	context2d.lineTo(canvasWidth, canvasHeight);
-	context2d.moveTo(canvasWidth, 0);
-	context2d.lineTo(0, canvasHeight);
-	context2d.moveTo(0, canvasHeight/2);
-	context2d.lineTo(canvasWidth, canvasHeight/2);
-	context2d.moveTo(canvasWidth/2, 0);
-	context2d.lineTo(canvasWidth/2, canvasHeight);
-	context2d.stroke();
-
-	if (soundMan.play) {
-		context2d.fillStyle = "darkgray";
-		context2d.beginPath();
-		context2d.arc(inputMan.x, inputMan.y, 20, 0, Math.PI*2);
-		context2d.closePath();
+		context2d.strokeStyle = "lightgray";
+		context2d.moveTo(0, 0);
+		context2d.lineTo(canvasWidth, canvasHeight);
+		context2d.moveTo(canvasWidth, 0);
+		context2d.lineTo(0, canvasHeight);
+		context2d.moveTo(0, canvasHeight/2);
+		context2d.lineTo(canvasWidth, canvasHeight/2);
+		context2d.moveTo(canvasWidth/2, 0);
+		context2d.lineTo(canvasWidth/2, canvasHeight);
 		context2d.stroke();
-	}
 
+		if (vars.play) {
+			for (var i = vars.xs.length-1; i >= 0; --i) {
+				context2d.strokeStyle = vars.colors[i];
+				context2d.beginPath();
+				context2d.arc(vars.xs[i] * canvasWidth, vars.ys[i] * canvasHeight, 20, 0, Math.PI*2);
+				context2d.stroke();
+			}
+		}
+	}
 	requestAnimationFrame(draw);
 }
 
@@ -129,66 +138,69 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	for (var i = soundMan.filterOn.length-1; i >= 0; --i) {
-		if (soundMan.filterOn[i]) {
-			soundMan.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
-			soundMan.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
+	for (var i = vars.filterOn.length-1; i >= 0; --i) {
+		if (vars.filterOn[i]) {
+			vars.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
+			vars.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
 
-			soundMan.loFilters[i].Q.value = res * 30;	// loFilter.Q.maxValue;
-			soundMan.hiFilters[i].Q.value = res * 30;	// hiFilter.Q.maxValue;
+			vars.loFilters[i].Q.value = res * 30;
+			vars.hiFilters[i].Q.value = res * 30;
+
+			vars.xs[i] = x;
+			vars.ys[i] = y;
 		}
 	}
 }
 
 function play() {
-	if (!soundMan.play) {
-		for (var i = soundMan.sources.length-1; i >= 0; --i) {
+	if (!vars.play) {
+		for (var i = vars.sources.length-1; i >= 0; --i) {
 			if (window.AudioContext) {
-				soundMan.sources[i].play();
+				vars.sources[i].play();
 			} else {
-				soundMan.sources[i].noteOn(0);
+				vars.sources[i].noteOn(0);
 			}
-			soundMan.play = true;
+			vars.play = true;
 		}
 	}
 }
 
 function mouseDown(event) {
 	mouseXY(event);
-	inputMan.click = true;
+	vars.click = true;
 }
 
 function mouseXY(event) {
+	var x, y;
 	if (event.touches) {
-		inputMan.x = event.touches[0].pageX;
-		inputMan.y = event.touches[0].pageY;
+		x = event.touches[0].pageX;
+		y = event.touches[0].pageY;
 	} else {
-		inputMan.x = event.pageX;
-		inputMan.y = event.pageY;
+		x = event.pageX;
+		y = event.pageY;
 	}
+	x -= canvas.offsetLeft;
+	y -= canvas.offsetTop;
 
-	inputMan.x -= canvas.offsetLeft;
-	inputMan.y -= canvas.offsetTop;
-
-	doFilters(inputMan.x / canvas.width, inputMan.y / canvas.height);
+	doFilters(x / canvas.width, y / canvas.height);
 	event.preventDefault();
 }
 
 function mouseMove(event) {
-	if (inputMan.click) {
+	if (vars.click) {
 		mouseXY(event);
 	}
 }
 
 function mouseUp(event) {
-	inputMan.click = false;
+	vars.click = false;
 }
 
 function keyDown(event) {
 	var i = event.keyCode-49;
-	if (i >= 0 && i <= soundMan.filterOn.length-1) {
-		soundMan.filterOn[i] = !soundMan.filterOn[i];
-		console.log(soundMan.sources[i].id + (soundMan.filterOn[i] ? " on" : " off"));
+	if (i >= 0 && i <= vars.filterOn.length-1) {
+		vars.filterOn[i] = !vars.filterOn[i];
+		console.log(vars.sources[i].id + (vars.filterOn[i] ? " on" : " off"));
 	}
 }
 
@@ -202,9 +214,9 @@ ga('send', 'pageview');
 </head>
 <body>
 	<br/>
-	<center style="font-family:sans-serif">
+	<center>
 		<canvas id="canvas" width="640" height="320" style="border-style:solid"></canvas>
-		<div onclick="play()">Play</div>
+		<br/><input type="button" value="  Play  " onclick="play()"/>
 	</center>
 	<br/>
 	<div style="width:480px; margin-left:auto; margin-right:auto">
