@@ -9,6 +9,8 @@
 var canvas, context2d, audioContext;
 
 var vars = {
+	length:0,
+	time:0,
 	xs:[],
 	ys:[],
 	sources:[],
@@ -26,6 +28,8 @@ window.onload = function() {
 	console.log("init");
 
 	function loadAudio(name, file) {
+		vars.length++;
+
 		if (window.AudioContext) {
 			var audio = document.createElement("audio");
 			audio.onloadedmetadata = loadedMetadata;
@@ -63,7 +67,7 @@ window.onload = function() {
 	window.addEventListener("mouseup", mouseUp);
 	window.addEventListener("keydown", keyDown);
 
-	draw();
+	draw(0);
 }
 
 function loadedMetadata(event) {
@@ -97,7 +101,9 @@ function loadFilters(source) {
 }
 
 function draw(time) {
-	if (!time || vars.play) {
+	if (!time || time > vars.time) {
+		console.log(time - vars.time);
+
 		var canvasWidth = canvas.width, canvasHeight = canvas.height;
 		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -113,7 +119,7 @@ function draw(time) {
 		context2d.stroke();
 
 		if (vars.play) {
-			for (var i = vars.xs.length-1; i >= 0; --i) {
+			for (var i = vars.length-1; i >= 0; --i) {
 				context2d.strokeStyle = vars.colors[i];
 				context2d.beginPath();
 				context2d.arc(vars.xs[i] * canvasWidth, vars.ys[i] * canvasHeight, 20, 0, Math.PI*2);
@@ -121,7 +127,7 @@ function draw(time) {
 			}
 		}
 	}
-	requestAnimationFrame(draw);
+	vars.time = time;
 }
 
 function doFilters(x, y) {
@@ -138,7 +144,7 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	for (var i = vars.filterOn.length-1; i >= 0; --i) {
+	for (var i = vars.length-1; i >= 0; --i) {
 		if (vars.filterOn[i]) {
 			vars.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
 			vars.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
@@ -153,8 +159,8 @@ function doFilters(x, y) {
 }
 
 function play() {
-	if (!vars.play) {
-		for (var i = vars.sources.length-1; i >= 0; --i) {
+	if (!vars.play && vars.sources.length == vars.length) {
+		for (var i = vars.length-1; i >= 0; --i) {
 			if (window.AudioContext) {
 				vars.sources[i].play();
 			} else {
@@ -162,6 +168,7 @@ function play() {
 			}
 			vars.play = true;
 		}
+		if (vars.play) draw(0);
 	}
 }
 
@@ -183,6 +190,7 @@ function mouseXY(event) {
 	y -= canvas.offsetTop;
 
 	doFilters(x / canvas.width, y / canvas.height);
+	requestAnimationFrame(draw);
 	event.preventDefault();
 }
 
@@ -198,7 +206,7 @@ function mouseUp(event) {
 
 function keyDown(event) {
 	var i = event.keyCode-49;
-	if (i >= 0 && i <= vars.filterOn.length-1) {
+	if (i >= 0 && i <= vars.length-1) {
 		vars.filterOn[i] = !vars.filterOn[i];
 		console.log(vars.sources[i].id + (vars.filterOn[i] ? " on" : " off"));
 	}
