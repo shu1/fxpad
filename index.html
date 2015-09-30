@@ -3,38 +3,35 @@
 <html>
 <head>
 <title>DJ effects pad</title>
-<meta name="viewport" content="user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <script type="text/javascript">
 "use strict";
-
-var canvas, audioContext;
+(function() {
+var canvas, audioContext, filters=[], texts=[];
 
 var vars = {
 	textHeight:18,
 	length:0,
-	time:0,
-	xys:[],
-	texts:[],
-	sources:[],
-	filterOn:[],
-	loFilters:[],
-	hiFilters:[],
-	colors:[
-		"rgba(255,0,0,0.5)",
-		"rgba(0,255,0,0.5)",
-		"rgba(0,0,255,0.5)"
-	]
+	time:0
 };
 
+var colors = [
+	"rgba(255,0,0,0.5)",
+	"rgba(0,255,0,0.5)",
+	"rgba(0,0,255,0.5)"
+]
+
+var stems = [
+	{name:"Music", file:"music.wav"},
+	{name:"Vocals", file:"vocals.wav"},
+	{name:"BG Vocals", file:"bgvocals.wav"}
+]
+
 window.onload = function() {
-	loadAudio("Music", "music.wav");
-	loadAudio("Vocals", "vocals.wav");
-	loadAudio("BG Vocals", "bgvocals.wav");
+	for (var i = 0; i < stems.length; ++i) {
+		loadAudio(i);
+	}
 
 	canvas = document.getElementById("canvas");
-
 	canvas.addEventListener("touchstart", mouseDown);
 	canvas.addEventListener("touchmove", mouseMove);
 	window.addEventListener("touchend", mouseUp);
@@ -42,77 +39,66 @@ window.onload = function() {
 	canvas.addEventListener("mousemove", mouseMove);
 	window.addEventListener("mouseup", mouseUp);
 	window.addEventListener("keydown", keyDown);
-
 	draw(0);
 
-	function loadAudio(name, file) {
-		vars.length++;
-
+	function loadAudio(i) {
 		if (window.AudioContext) {
+			audioContext = audioContext || new AudioContext();
 			var audio = document.createElement("audio");
-			audio.onloadedmetadata = loadedMetadata;
-			audio.name = name;
-			audio.src = file;
-		} else {
+			audio.onloadedmetadata = function(event) {
+				var source = audioContext.createMediaElementSource(event.target);
+				setupFilters(source, i);
+				filters[i].source = event.target;
+			}
+			audio.src = stems[i].file;
+		}
+		else if (window.webkitAudioContext) {
+			audioContext = audioContext || new webkitAudioContext();
 			var request = new XMLHttpRequest();
-			request.open("get", file, true);
+			request.open("get", stems[i].file, true);
 			request.responseType = "arraybuffer";
 			request.onload = function() {
-				audioContext = audioContext || new webkitAudioContext();
 				var source = audioContext.createBufferSource();
 				source.buffer = audioContext.createBuffer(request.response, false);
-				source.name = name;
-				vars.sources.push(source);
-				setupFilters(source);
+				setupFilters(source, i);
+				filters[i].source = source;
 			}
 			request.send();
 		}
 	}
-}
 
-function loadedMetadata(event) {
-	audioContext = audioContext || new AudioContext();
-	var source = audioContext.createMediaElementSource(event.target);
-	vars.sources.push(event.target);
-	setupFilters(source);
-}
+	function setupFilters(source, i) {
+		var lo = audioContext.createBiquadFilter();
+		lo.type = "lowpass";
+		lo.frequency.value = audioContext.sampleRate/2;
 
-function setupFilters(source) {
-	var loFilter = audioContext.createBiquadFilter();
-	loFilter.type = "lowpass";
-	loFilter.frequency.value = audioContext.sampleRate/2;
-	vars.loFilters.push(loFilter);
+		var hi = audioContext.createBiquadFilter();
+		hi.type = "highpass";
+		hi.frequency.value = 10;
 
-	var hiFilter = audioContext.createBiquadFilter();
-	hiFilter.type = "highpass";
-	hiFilter.frequency.value = 10;
-	vars.hiFilters.push(hiFilter);
+		source.connect(lo);
+		lo.connect(hi);
+		hi.connect(audioContext.destination);
 
-	source.connect(loFilter);
-	loFilter.connect(hiFilter);
-	hiFilter.connect(audioContext.destination);
-
-	vars.filterOn.push(true);
-	vars.xys.push({x:0.5, y:0.5});
-	setTexts();
-	draw(0);
-}
-
-function setTexts() {
-	var context2d = canvas.getContext("2d");
-	var cellWidth = canvas.width / vars.sources.length;
-
-	for (var i = vars.sources.length-1; i >= 0; --i) {
-		var font = context2d.font = (vars.filterOn[i] ? "bold " : "") + vars.textHeight + "pt sans-serif";
-		var width = context2d.measureText(vars.sources[i].name).width;
-		var x = (cellWidth - width)/2 + cellWidth*i;
-		vars.texts[i] = {font:font, x:x, x2:x+width};
+		filters[i] = {lo:lo, hi:hi, on:true, x:0.5, y:0.5};
+		setTexts(i);
+		vars.length++;
+		draw(0);
 	}
 }
 
+function setTexts(i) {
+	var context2d = canvas.getContext("2d");
+	var cellWidth = canvas.width / stems.length;
+	var font = context2d.font = (filters[i].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
+	var width = context2d.measureText(stems[i].name).width;
+	var x = (cellWidth - width)/2 + cellWidth*i;
+	texts[i] = {font:font, x:x, x2:x+width};
+}
+
 function draw(time) {
-	if (!time || time > vars.time) {
-		var canvasWidth = canvas.width, canvasHeight = canvas.height, context2d = canvas.getContext("2d");
+	if (!time || time != vars.time) {
+		var context2d = canvas.getContext("2d"), canvasWidth = canvas.width, canvasHeight = canvas.height;
 		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		context2d.strokeStyle = "lightgray";
@@ -127,19 +113,21 @@ function draw(time) {
 		context2d.stroke();
 
 		if (vars.play) {
-			for (var i = vars.xys.length-1; i >= 0; --i) {
-				context2d.strokeStyle = vars.colors[i];
+			for (var i = filters.length-1; i >= 0; --i) {
+				context2d.strokeStyle = colors[i];
 				context2d.beginPath();
-				context2d.arc(vars.xys[i].x * canvasWidth, vars.xys[i].y * canvasHeight, 20, 0, Math.PI*2);
+				context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, 0, Math.PI*2);
 				context2d.stroke();
 			}
 		}
 
 		var y = canvasHeight-2;
-		for (var i = vars.sources.length-1; i >= 0; --i) {
-			context2d.fillStyle = vars.colors[i];
-			context2d.font = vars.texts[i].font;
-			context2d.fillText(vars.sources[i].name, vars.texts[i].x, y);
+		for (var i = texts.length-1; i >= 0; --i) {
+			if (texts[i]) {
+				context2d.fillStyle = colors[i];
+				context2d.font = texts[i].font;
+				context2d.fillText(stems[i].name, texts[i].x, y);
+			}
 		}
 	}
 	vars.time = time;
@@ -159,24 +147,25 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	for (var i = vars.filterOn.length-1; i >= 0; --i) {
-		if (vars.filterOn[i]) {
-			vars.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
-			vars.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
+	for (var i = filters.length-1; i >= 0; --i) {
+		if (filters[i].on) {
+			filters[i].lo.frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
+			filters[i].lo.Q.value = res * 30;
 
-			vars.loFilters[i].Q.value = res * 30;
-			vars.hiFilters[i].Q.value = res * 30;
+			filters[i].hi.frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
+			filters[i].hi.Q.value = res * 30;
 
-			vars.xys[i] = {x:x, y:y};
+			filters[i].x = x;
+			filters[i].y = y;
 		}
 	}
 }
 
 function keyDown(event) {
 	var i = event.keyCode-49;
-	if (i >= 0 && i <= vars.filterOn.length-1) {
-		vars.filterOn[i] = !vars.filterOn[i];
-		setTexts();
+	if (i >= 0 && i <= filters.length-1) {
+		filters[i].on = !filters[i].on;
+		setTexts(i);
 		draw(0);
 	}
 }
@@ -186,10 +175,10 @@ function mouseDown(event) {
 	mouseXY(event);
 
 	if (vars.y > canvas.height - vars.textHeight) {
-		for (var i = vars.filterOn.length-1; i >= 0; --i) {
-			if (vars.x > vars.texts[i].x && vars.x < vars.texts[i].x2) {
-				vars.filterOn[i] = !vars.filterOn[i];
-				setTexts();
+		for (var i = texts.length-1; i >= 0; --i) {
+			if (vars.x > texts[i].x && vars.x < texts[i].x2) {
+				filters[i].on = !filters[i].on;
+				setTexts(i);
 				vars.drag = true;
 			}
 		}
@@ -223,12 +212,12 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.play && vars.sources.length == vars.length && event.target == canvas) {
-		for (var i = vars.sources.length-1; i >= 0; --i) {
+	if (!vars.play && vars.length == stems.length && event.target == canvas) {
+		for (var i = vars.length-1; i >= 0; --i) {
 			if (window.AudioContext) {
-				vars.sources[i].play();
+				filters[i].source.play();
 			} else {
-				vars.sources[i].start(0);
+				filters[i].source.start(0);
 			}
 			vars.play = true;
 		}
@@ -238,7 +227,7 @@ function mouseUp(event) {
 	vars.click = false;
 	vars.drag = false;
 }
-
+})();
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
