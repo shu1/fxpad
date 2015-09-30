@@ -127,7 +127,7 @@ function draw(time) {
 		context2d.stroke();
 
 		if (vars.play) {
-			for (var i = vars.length-1; i >= 0; --i) {
+			for (var i = vars.xys.length-1; i >= 0; --i) {
 				context2d.strokeStyle = vars.colors[i];
 				context2d.beginPath();
 				context2d.arc(vars.xys[i].x * canvasWidth, vars.xys[i].y * canvasHeight, 20, 0, Math.PI*2);
@@ -159,7 +159,7 @@ function doFilters(x, y) {
 		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
 	}
 
-	for (var i = vars.length-1; i >= 0; --i) {
+	for (var i = vars.filterOn.length-1; i >= 0; --i) {
 		if (vars.filterOn[i]) {
 			vars.loFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
 			vars.hiFilters[i].frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
@@ -167,30 +167,26 @@ function doFilters(x, y) {
 			vars.loFilters[i].Q.value = res * 30;
 			vars.hiFilters[i].Q.value = res * 30;
 
-			vars.xys[i] = {x:x,y:y};
+			vars.xys[i] = {x:x, y:y};
 		}
 	}
 }
 
-function play() {
-	if (!vars.play && vars.sources.length == vars.length) {
-		for (var i = vars.length-1; i >= 0; --i) {
-			if (window.AudioContext) {
-				vars.sources[i].play();
-			} else {
-				vars.sources[i].noteOn(0);
-			}
-			vars.play = true;
-		}
-		if (vars.play) draw(0);
+function keyDown(event) {
+	var i = event.keyCode-49;
+	if (i >= 0 && i <= vars.filterOn.length-1) {
+		vars.filterOn[i] = !vars.filterOn[i];
+		setTexts();
+		draw(0);
 	}
 }
 
 function mouseDown(event) {
+	vars.click = true;
 	mouseXY(event);
 
 	if (vars.y > canvas.height - vars.textHeight) {
-		for (var i = vars.length-1; i >= 0; --i) {
+		for (var i = vars.filterOn.length-1; i >= 0; --i) {
 			if (vars.x > vars.texts[i].x && vars.x < vars.texts[i].x2) {
 				vars.filterOn[i] = !vars.filterOn[i];
 				setTexts();
@@ -202,8 +198,6 @@ function mouseDown(event) {
 	if (!vars.drag) {
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
-
-	vars.click = true;
 }
 
 function mouseXY(event) {
@@ -229,17 +223,20 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
+	if (!vars.play && vars.sources.length == vars.length && event.target == canvas) {
+		for (var i = vars.sources.length-1; i >= 0; --i) {
+			if (window.AudioContext) {
+				vars.sources[i].play();
+			} else {
+				vars.sources[i].start(0);
+			}
+			vars.play = true;
+		}
+		if (vars.play) draw(0);
+	}
+
 	vars.click = false;
 	vars.drag = false;
-}
-
-function keyDown(event) {
-	var i = event.keyCode-49;
-	if (i >= 0 && i <= vars.filterOn.length-1) {
-		vars.filterOn[i] = !vars.filterOn[i];
-		setTexts();
-		draw(0);
-	}
 }
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -251,27 +248,27 @@ ga('send', 'pageview');
 </script>
 </head>
 <body>
-	<br/>
+	<br>
 	<center>
 		<canvas id="canvas" width="800" height="400" style="border-style:solid"></canvas>
-		<br/><input type="button" value="   Play   " onclick="play()"/>
 	</center>
-	<br/>
+	<br>
 	<div style="width:480px; margin-left:auto; margin-right:auto">
 		<center><b>DJ effects pad</b></center>
-		<div>
-			Click on pad to start playing track.<br/>
-			Click/drag circle to change effects.<br/>
-		</div>
-		<div style="position:relative; top:5px">
-			Low Pass Filter - Drag mouse horizontally in left half of screen.<br/>
-			High Pass Filter - Drag mouse horizontally in right half of screen.<br/>
-			Resonance - Drag mouse vertically in top or bottom half of screen.<br/>
-		</div>
-		<div style="position:relative; top:10px">
+		<p>
+			Click anywhere in pad to start playing track.<br>
+			Click/drag circle to change effects.<br>
+			Click on colored channel names to toggle channel filters.<br>
+		</p>
+		<p>
+			Low Pass Filter - Drag mouse horizontally in left half of screen.<br>
+			High Pass Filter - Drag mouse horizontally in right half of screen.<br>
+			Resonance - Drag mouse vertically in top or bottom half of screen.<br>
+		</p>
+		<p>
 			Made with Web Audio API.
-		</div>
+		</p>
 	</div>
-	<br/>
+	<br>
 </body>
 </html>
