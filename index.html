@@ -10,9 +10,9 @@ var canvas, audioContext, filters=[], texts=[];
 
 var vars = {
 	textHeight:18,
-	length:0,
+	nLoaded:0,
 	time:0
-};
+}
 
 var colors = [
 	"rgba(255,0,0,0.5)",
@@ -41,33 +41,33 @@ window.onload = function() {
 	window.addEventListener("keydown", keyDown);
 	draw(0);
 
-	function loadAudio(i) {
+	function loadAudio(index) {
 		if (window.AudioContext) {
 			audioContext = audioContext || new AudioContext();
 			var audio = document.createElement("audio");
 			audio.onloadedmetadata = function(event) {
 				var source = audioContext.createMediaElementSource(event.target);
-				setupFilters(source, i);
-				filters[i].source = event.target;
+				setupFilter(index, source);
+				filters[index].audio = event.target;
 			}
-			audio.src = stems[i].file;
+			audio.src = stems[index].file;
 		}
 		else if (window.webkitAudioContext) {
 			audioContext = audioContext || new webkitAudioContext();
 			var request = new XMLHttpRequest();
-			request.open("get", stems[i].file, true);
+			request.open("get", stems[index].file, true);
 			request.responseType = "arraybuffer";
 			request.onload = function() {
 				var source = audioContext.createBufferSource();
 				source.buffer = audioContext.createBuffer(request.response, false);
-				setupFilters(source, i);
-				filters[i].source = source;
+				setupFilter(index, source);
+				filters[index].source = source;
 			}
 			request.send();
 		}
 	}
 
-	function setupFilters(source, i) {
+	function setupFilter(index, source) {
 		var lo = audioContext.createBiquadFilter();
 		lo.type = "lowpass";
 		lo.frequency.value = audioContext.sampleRate/2;
@@ -80,20 +80,29 @@ window.onload = function() {
 		lo.connect(hi);
 		hi.connect(audioContext.destination);
 
-		filters[i] = {lo:lo, hi:hi, on:true, x:0.5, y:0.5};
-		setTexts(i);
-		vars.length++;
+		filters[index] = {x:0.5, y:0.5, lo:lo, hi:hi};
+		setFilter(index, true);
+		vars.nLoaded++;
 		draw(0);
 	}
 }
 
-function setTexts(i) {
+function setFilter(index, value) {
+	filters[index].on = value;
+
 	var context2d = canvas.getContext("2d");
 	var cellWidth = canvas.width / stems.length;
-	var font = context2d.font = (filters[i].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
-	var width = context2d.measureText(stems[i].name).width;
-	var x = (cellWidth - width)/2 + cellWidth*i;
-	texts[i] = {font:font, x:x, x2:x+width};
+	var font = context2d.font = (value ? "bold " : "") + vars.textHeight + "pt sans-serif";
+	var width = context2d.measureText(stems[index].name).width;
+	var x = (cellWidth - width)/2 + cellWidth*index;
+	texts[index] = {font:font, x:x, x2:x+width};
+
+	vars.nOn = 0;
+	for (var i = filters.length-1; i >= 0; --i) {
+		if (filters[i] && filters[i].on) {
+			vars.nOn++;
+		}
+	}
 }
 
 function draw(time) {
@@ -135,11 +144,10 @@ function draw(time) {
 
 function doFilters(x, y) {
 	var nyquist = audioContext.sampleRate / 2;
-	var noctaves = Math.log(nyquist / 40) / Math.LN2;
+	var nOctaves = Math.log(nyquist / 40) / Math.LN2;
 	var res = Math.abs(y - 0.5) * 2;	// map 0.5 to 0
 
 	var lo = 0.99, hi = 0.01;	// not max to prevent audio deterioration
-
 	if (x < 0.5) {	// left half is low pass
 		lo = x * 2 * 0.8 + 0.2; // map 0 ~ 0.5 to 0.2 ~ 1
 	}
@@ -149,10 +157,10 @@ function doFilters(x, y) {
 
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].on) {
-			filters[i].lo.frequency.value = nyquist * Math.pow(2, noctaves * (lo - 1));
+			filters[i].lo.frequency.value = nyquist * Math.pow(2, nOctaves * (lo - 1));
 			filters[i].lo.Q.value = res * 30;
 
-			filters[i].hi.frequency.value = nyquist * Math.pow(2, noctaves * (hi - 1));
+			filters[i].hi.frequency.value = nyquist * Math.pow(2, nOctaves * (hi - 1));
 			filters[i].hi.Q.value = res * 30;
 
 			filters[i].x = x;
@@ -164,8 +172,7 @@ function doFilters(x, y) {
 function keyDown(event) {
 	var i = event.keyCode-49;
 	if (i >= 0 && i <= filters.length-1) {
-		filters[i].on = !filters[i].on;
-		setTexts(i);
+		setFilter(i, !filters[i].on);
 		draw(0);
 	}
 }
@@ -177,8 +184,7 @@ function mouseDown(event) {
 	if (vars.y > canvas.height - vars.textHeight) {
 		for (var i = texts.length-1; i >= 0; --i) {
 			if (vars.x > texts[i].x && vars.x < texts[i].x2) {
-				filters[i].on = !filters[i].on;
-				setTexts(i);
+				setFilter(i, !filters[i].on);
 				vars.drag = true;
 			}
 		}
@@ -212,10 +218,10 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.play && vars.length == stems.length && event.target == canvas) {
-		for (var i = vars.length-1; i >= 0; --i) {
+	if (!vars.play && vars.nLoaded == stems.length && event.target == canvas) {
+		for (var i = vars.nLoaded-1; i >= 0; --i) {
 			if (window.AudioContext) {
-				filters[i].source.play();
+				filters[i].audio.play();
 			} else {
 				filters[i].source.start(0);
 			}
