@@ -106,7 +106,7 @@ function setFilter(index, value) {
 }
 
 function draw(time) {
-	if (!time || time != vars.time) {
+	if (time != vars.time) {
 		var context2d = canvas.getContext("2d")
 		var canvasWidth = canvas.width, canvasHeight = canvas.height;
 		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -124,12 +124,12 @@ function draw(time) {
 
 		if (vars.play) {
 			for (var i = filters.length-1; i >= 0; --i) {
-					context2d.strokeStyle = colors[i];
-					context2d.beginPath();
-					context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, 0, Math.PI*2);
-					context2d.stroke();
-				}
+				context2d.strokeStyle = colors[i];
+				context2d.beginPath();
+				context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, 0, Math.PI*2);
+				context2d.stroke();
 			}
+		}
 
 		var y = canvasHeight-2;
 		for (var i = texts.length-1; i >= 0; --i) {
@@ -195,6 +195,7 @@ function mouseDown(event) {
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
 	requestAnimationFrame(draw);
+	event.preventDefault();
 }
 
 function mouseXY(event) {
@@ -207,15 +208,16 @@ function mouseXY(event) {
 	}
 	vars.x -= canvas.offsetLeft;
 	vars.y -= canvas.offsetTop;
-
-	event.preventDefault();
 }
 
 function mouseMove(event) {
-	if (vars.click && !vars.drag) {
-		mouseXY(event);
-		doFilters(vars.x / canvas.width, vars.y / canvas.height);
-		requestAnimationFrame(draw);
+	if (vars.click) {
+		if (!vars.drag) {
+			mouseXY(event);
+			doFilters(vars.x / canvas.width, vars.y / canvas.height);
+			requestAnimationFrame(draw);
+		}
+		event.preventDefault();
 	}
 }
 
@@ -227,9 +229,9 @@ function mouseUp(event) {
 			} else {
 				filters[i].source.start(0);
 			}
-			vars.play = true;
 		}
-		if (vars.play) requestAnimationFrame(draw);
+		vars.play = true;
+		requestAnimationFrame(draw);
 	}
 
 	vars.click = false;
