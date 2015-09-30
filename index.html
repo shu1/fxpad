@@ -39,7 +39,7 @@ window.onload = function() {
 	canvas.addEventListener("mousemove", mouseMove);
 	window.addEventListener("mouseup", mouseUp);
 	window.addEventListener("keydown", keyDown);
-	draw(0);
+	requestAnimationFrame(draw);
 
 	function loadAudio(index) {
 		if (window.AudioContext) {
@@ -83,7 +83,7 @@ window.onload = function() {
 		filters[index] = {x:0.5, y:0.5, lo:lo, hi:hi};
 		setFilter(index, true);
 		vars.nLoaded++;
-		draw(0);
+		requestAnimationFrame(draw);
 	}
 }
 
@@ -107,7 +107,8 @@ function setFilter(index, value) {
 
 function draw(time) {
 	if (!time || time != vars.time) {
-		var context2d = canvas.getContext("2d"), canvasWidth = canvas.width, canvasHeight = canvas.height;
+		var context2d = canvas.getContext("2d")
+		var canvasWidth = canvas.width, canvasHeight = canvas.height;
 		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
 		context2d.strokeStyle = "lightgray";
@@ -123,12 +124,12 @@ function draw(time) {
 
 		if (vars.play) {
 			for (var i = filters.length-1; i >= 0; --i) {
-				context2d.strokeStyle = colors[i];
-				context2d.beginPath();
-				context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, 0, Math.PI*2);
-				context2d.stroke();
+					context2d.strokeStyle = colors[i];
+					context2d.beginPath();
+					context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, 0, Math.PI*2);
+					context2d.stroke();
+				}
 			}
-		}
 
 		var y = canvasHeight-2;
 		for (var i = texts.length-1; i >= 0; --i) {
@@ -173,7 +174,7 @@ function keyDown(event) {
 	var i = event.keyCode-49;
 	if (i >= 0 && i <= filters.length-1) {
 		setFilter(i, !filters[i].on);
-		draw(0);
+		requestAnimationFrame(draw);
 	}
 }
 
@@ -193,6 +194,7 @@ function mouseDown(event) {
 	if (!vars.drag) {
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
+	requestAnimationFrame(draw);
 }
 
 function mouseXY(event) {
@@ -206,7 +208,6 @@ function mouseXY(event) {
 	vars.x -= canvas.offsetLeft;
 	vars.y -= canvas.offsetTop;
 
-	requestAnimationFrame(draw);
 	event.preventDefault();
 }
 
@@ -214,6 +215,7 @@ function mouseMove(event) {
 	if (vars.click && !vars.drag) {
 		mouseXY(event);
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
+		requestAnimationFrame(draw);
 	}
 }
 
@@ -227,7 +229,7 @@ function mouseUp(event) {
 			}
 			vars.play = true;
 		}
-		if (vars.play) draw(0);
+		if (vars.play) requestAnimationFrame(draw);
 	}
 
 	vars.click = false;
