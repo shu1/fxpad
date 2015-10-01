@@ -14,16 +14,10 @@ var vars = {
 	time:0
 }
 
-var colors = [
-	"red",
-	"green",
-	"blue"
-]
-
 var stems = [
-	{name:"Music", file:"music.wav"},
-	{name:"Vocals", file:"vocals.wav"},
-	{name:"BG Vocals", file:"bgvocals.wav"}
+	{name:"Music", file:"music.wav", color:"red"},
+	{name:"Vocals", file:"vocals.wav", color:"green"},
+	{name:"BG Vocals", file:"bgvocals.wav", color:"blue"}
 ]
 
 window.onload = function() {
@@ -127,7 +121,7 @@ function draw(time) {
 			context2d.lineWidth = 2;
 
 			for (var i = filters.length-1; i >= 0; --i) {
-				context2d.strokeStyle = colors[i];
+				context2d.strokeStyle = stems[i].color;
 				if (filters[i].on) {
 					++n;
 					drawArc(arc * n, arc * (n+1));
@@ -140,7 +134,7 @@ function draw(time) {
 		var y = canvasHeight-2;
 		for (var i = texts.length-1; i >= 0; --i) {
 			if (texts[i]) {
-				context2d.fillStyle = colors[i];
+				context2d.fillStyle = stems[i].color;
 				context2d.font = texts[i].font;
 				context2d.fillText(stems[i].name, texts[i].x, y);
 			}
