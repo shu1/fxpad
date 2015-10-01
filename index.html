@@ -15,9 +15,9 @@ var vars = {
 }
 
 var colors = [
-	"rgba(255,0,0,0.5)",
-	"rgba(0,255,0,0.5)",
-	"rgba(0,0,255,0.5)"
+	"red",
+	"green",
+	"blue"
 ]
 
 var stems = [
@@ -123,11 +123,17 @@ function draw(time) {
 		context2d.stroke();
 
 		if (vars.play) {
+			var n = 0, arc = Math.PI*2 / vars.nOn;
+			context2d.lineWidth = 2;
+
 			for (var i = filters.length-1; i >= 0; --i) {
 				context2d.strokeStyle = colors[i];
-				context2d.beginPath();
-				context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, 0, Math.PI*2);
-				context2d.stroke();
+				if (filters[i].on) {
+					++n;
+					drawArc(arc * n, arc * (n+1));
+				} else {
+					drawArc(0, Math.PI*2);
+				}
 			}
 		}
 
@@ -141,6 +147,12 @@ function draw(time) {
 		}
 	}
 	vars.time = time;
+
+	function drawArc(angle1, angle2) {
+		context2d.beginPath();
+		context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, angle1, angle2);
+		context2d.stroke();
+	}
 }
 
 function doFilters(x, y) {
