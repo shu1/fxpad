@@ -9,6 +9,16 @@ var vars = {
 }
 
 window.onload = function() {
+	if (window.AudioContext) {
+		audioContext = new AudioContext();
+	}
+	else if (window.webkitAudioContext) {
+		audioContext = new webkitAudioContext();
+		if (navigator.userAgent.indexOf("Mobile") >= 0) {
+			vars.buffer = true;
+		}
+	}
+
 	if (typeof stems != "undefined") {
 		vars.stems = stems;
 		for (var i = 0; i < vars.stems.length; ++i) {
@@ -49,20 +59,7 @@ function loadSC() {
 }
 
 function loadAudio(index, src, play) {
-	if (window.AudioContext) {
-		audioContext = audioContext || new AudioContext();
-		var audio = document.createElement("audio");
-		audio.oncanplay = function(event) {
-			var source = audioContext.createMediaElementSource(event.target);
-			setupFilter(index, source);
-			filters[index].audio = event.target;
-			if (play) playStart();
-		}
-		audio.crossOrigin = "anonymous";
-		audio.src = src;
-	}
-	else if (window.webkitAudioContext) {
-		audioContext = audioContext || new webkitAudioContext();
+	if (vars.buffer) {
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
 		request.responseType = "arraybuffer";
@@ -72,7 +69,18 @@ function loadAudio(index, src, play) {
 			setupFilter(index, source);
 			filters[index].source = source;
 		}
+    	request.withCredentials = true;
 		request.send();
+	} else {
+		var audio = document.createElement("audio");
+		audio.oncanplay = function(event) {
+			var source = audioContext.createMediaElementSource(audio);
+			setupFilter(index, source);
+			filters[index].audio = audio;
+			if (play) playStart();
+		}
+		audio.crossOrigin = "anonymous";
+		audio.src = src;
 	}
 }
 
@@ -114,13 +122,15 @@ function setFilter(index, value) {
 
 function playStart() {
 	for (var i = filters.length-1; i >= 0; --i) {
-		if (window.AudioContext) {
+		if (filters[i].audio) {
 			filters[i].audio.play();
-		} else {
+		}
+		else if (filters[i].source) {
 			filters[i].source.start(0);
 		}
 		vars.playing = true;
 	}
+
 	if (vars.playing) requestAnimationFrame(draw);
 }
 
