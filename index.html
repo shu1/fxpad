@@ -6,7 +6,7 @@
 <script type="text/javascript">
 "use strict";
 (function() {
-var canvas, audioContext, filters=[], texts=[];
+var canvas, context2d, audioContext, filters=[], texts=[];
 
 var vars = {
 	textHeight:18,
@@ -21,11 +21,15 @@ var stems = [
 ]
 
 window.onload = function() {
-	for (var i = 0; i < stems.length; ++i) {
-		loadAudio(i);
+	if (stems) {
+		for (var i = 0; i < stems.length; ++i) {
+			loadAudio(i, stems[i].file);
+		}
 	}
 
 	canvas = document.getElementById("canvas");
+	context2d = canvas.getContext("2d");
+
 	canvas.addEventListener("touchstart", mouseDown);
 	canvas.addEventListener("touchmove", mouseMove);
 	window.addEventListener("touchend", mouseUp);
@@ -33,9 +37,10 @@ window.onload = function() {
 	canvas.addEventListener("mousemove", mouseMove);
 	window.addEventListener("mouseup", mouseUp);
 	window.addEventListener("keydown", keyDown);
+
 	requestAnimationFrame(draw);
 
-	function loadAudio(index) {
+	function loadAudio(index, src) {
 		if (window.AudioContext) {
 			audioContext = audioContext || new AudioContext();
 			var audio = document.createElement("audio");
@@ -44,12 +49,12 @@ window.onload = function() {
 				setupFilter(index, source);
 				filters[index].audio = event.target;
 			}
-			audio.src = stems[index].file;
+			audio.src = src;
 		}
 		else if (window.webkitAudioContext) {
 			audioContext = audioContext || new webkitAudioContext();
 			var request = new XMLHttpRequest();
-			request.open("get", stems[index].file, true);
+			request.open("get", src, true);
 			request.responseType = "arraybuffer";
 			request.onload = function() {
 				var source = audioContext.createBufferSource();
@@ -75,8 +80,8 @@ window.onload = function() {
 		hi.connect(audioContext.destination);
 
 		filters[index] = {x:0.5, y:0.5, lo:lo, hi:hi};
-		setFilter(index, true);
 		vars.nLoaded++;
+		if (stems) setFilter(index, true);
 		requestAnimationFrame(draw);
 	}
 }
@@ -84,7 +89,6 @@ window.onload = function() {
 function setFilter(index, value) {
 	filters[index].on = value;
 
-	var context2d = canvas.getContext("2d");
 	var cellWidth = canvas.width / stems.length;
 	var font = context2d.font = (value ? "bold " : "") + vars.textHeight + "pt sans-serif";
 	var width = context2d.measureText(stems[index].name).width;
@@ -101,19 +105,18 @@ function setFilter(index, value) {
 
 function draw(time) {
 	if (time != vars.time) {
-		var context2d = canvas.getContext("2d")
-		var canvasWidth = canvas.width, canvasHeight = canvas.height;
-		context2d.clearRect(0, 0, canvasWidth, canvasHeight);
+		context2d.clearRect(0, 0, canvas.width, canvas.height);
 
+		context2d.lineWidth = 1;
 		context2d.strokeStyle = "lightgray";
 		context2d.moveTo(0, 0);
-		context2d.lineTo(canvasWidth, canvasHeight);
-		context2d.moveTo(canvasWidth, 0);
-		context2d.lineTo(0, canvasHeight);
-		context2d.moveTo(0, canvasHeight/2);
-		context2d.lineTo(canvasWidth, canvasHeight/2);
-		context2d.moveTo(canvasWidth/2, 0);
-		context2d.lineTo(canvasWidth/2, canvasHeight);
+		context2d.lineTo(canvas.width, canvas.height);
+		context2d.moveTo(canvas.width, 0);
+		context2d.lineTo(0, canvas.height);
+		context2d.moveTo(0, canvas.height/2);
+		context2d.lineTo(canvas.width, canvas.height/2);
+		context2d.moveTo(canvas.width/2, 0);
+		context2d.lineTo(canvas.width/2, canvas.height);
 		context2d.stroke();
 
 		if (vars.play) {
@@ -121,7 +124,7 @@ function draw(time) {
 			context2d.lineWidth = 2;
 
 			for (var i = filters.length-1; i >= 0; --i) {
-				context2d.strokeStyle = stems[i].color;
+				context2d.strokeStyle = stems ? stems[i].color : "darkgray";
 				if (filters[i].on) {
 					++n;
 					drawArc(arc * n, arc * (n+1));
@@ -131,12 +134,14 @@ function draw(time) {
 			}
 		}
 
-		var y = canvasHeight-2;
-		for (var i = texts.length-1; i >= 0; --i) {
-			if (texts[i]) {
-				context2d.fillStyle = stems[i].color;
-				context2d.font = texts[i].font;
-				context2d.fillText(stems[i].name, texts[i].x, y);
+		if (stems) {
+			var y = canvas.height-2;
+			for (var i = texts.length-1; i >= 0; --i) {
+				if (texts[i]) {
+					context2d.fillStyle = stems[i].color;
+					context2d.font = texts[i].font;
+					context2d.fillText(stems[i].name, texts[i].x, y);
+				}
 			}
 		}
 	}
@@ -144,7 +149,7 @@ function draw(time) {
 
 	function drawArc(angle1, angle2) {
 		context2d.beginPath();
-		context2d.arc(filters[i].x * canvasWidth, filters[i].y * canvasHeight, 20, angle1, angle2);
+		context2d.arc(filters[i].x * canvas.width, filters[i].y * canvas.height, 20, angle1, angle2);
 		context2d.stroke();
 	}
 }
@@ -197,7 +202,7 @@ function mouseDown(event) {
 		}
 	}
 
-	if (!vars.drag) {
+	if (!vars.drag && audioContext) {
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
 	requestAnimationFrame(draw);
@@ -218,7 +223,7 @@ function mouseXY(event) {
 
 function mouseMove(event) {
 	if (vars.click) {
-		if (!vars.drag) {
+		if (!vars.drag && audioContext) {
 			mouseXY(event);
 			doFilters(vars.x / canvas.width, vars.y / canvas.height);
 			requestAnimationFrame(draw);
@@ -228,16 +233,16 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.play && vars.nLoaded == stems.length && event.target == canvas) {
-		for (var i = vars.nLoaded-1; i >= 0; --i) {
+	if (!vars.play && event.target == canvas && (!stems || vars.nLoaded == stems.length)) {
+		for (var i = filters.length-1; i >= 0; --i) {
 			if (window.AudioContext) {
 				filters[i].audio.play();
 			} else {
 				filters[i].source.start(0);
 			}
+			vars.play = true;
 		}
-		vars.play = true;
-		requestAnimationFrame(draw);
+		if (vars.play) requestAnimationFrame(draw);
 	}
 
 	vars.click = false;
