@@ -3,17 +3,19 @@
 <html>
 <head>
 <title>DJ effects pad</title>
-<script src="http://connect.soundcloud.com/sdk-2.0.0.js"></script>
 <script type="text/javascript">
-SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
+var stems = [
+	{name:"Music", file:"music.wav", color:"red"},
+	{name:"Vocals", file:"vocals.wav", color:"green"},
+	{name:"BG Vocals", file:"bgvocals.wav", color:"blue"}
+]
 </script>
 <script src="main.js"></script>
 </head>
 <body>
 	<br>
 	<center>
-		<canvas id="canvas" width="800" height="400" style="border-style:solid"></canvas><br>
-		SoundCloud url: <input type="text" id="url" value="http://soundcloud.com/henrikgrunden/avicii-vs-journey-dont-stop" style="width:480px"/>
+		<canvas id="canvas" width="800" height="400" style="border-style:solid"></canvas>
 	</center>
 	<br>
 	<div style="width:480px; margin-left:auto; margin-right:auto">
@@ -21,6 +23,7 @@ SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
 		<p>
 			Click anywhere in pad to start playing track.<br>
 			Click/drag circle to change effects.<br>
+			Click on colored channel names to toggle channel filters.<br>
 		</p>
 		<p>
 			Low Pass Filter - Drag mouse horizontally in left half of screen.<br>
