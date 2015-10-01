@@ -8,16 +8,11 @@ var vars = {
 	time:0
 }
 
-var stems = [
-	{name:"Music", file:"music.wav", color:"red"},
-	{name:"Vocals", file:"vocals.wav", color:"green"},
-	{name:"BG Vocals", file:"bgvocals.wav", color:"blue"}
-]
-
 window.onload = function() {
-	if (stems) {
-		for (var i = 0; i < stems.length; ++i) {
-			loadAudio(i, stems[i].file);
+	if (typeof stems != "undefined") {
+		vars.stems = stems;
+		for (var i = 0; i < vars.stems.length; ++i) {
+			loadAudio(i, vars.stems[i].file);
 		}
 	}
 
@@ -30,62 +25,82 @@ window.onload = function() {
 	canvas.addEventListener("mousedown", mouseDown);
 	canvas.addEventListener("mousemove", mouseMove);
 	window.addEventListener("mouseup", mouseUp);
-	window.addEventListener("keydown", keyDown);
+	window.addEventListener("keypress", keyPress);
 
 	requestAnimationFrame(draw);
 
-	function loadAudio(index, src) {
-		if (window.AudioContext) {
-			audioContext = audioContext || new AudioContext();
-			var audio = document.createElement("audio");
-			audio.onloadedmetadata = function(event) {
-				var source = audioContext.createMediaElementSource(event.target);
-				setupFilter(index, source);
-				filters[index].audio = event.target;
+	var url = document.getElementById("url");
+	if (url) {
+		url.addEventListener("keypress", function(event) {
+			if (event.keyCode == 13) {
+				loadSC();
 			}
-			audio.src = src;
-		}
-		else if (window.webkitAudioContext) {
-			audioContext = audioContext || new webkitAudioContext();
-			var request = new XMLHttpRequest();
-			request.open("get", src, true);
-			request.responseType = "arraybuffer";
-			request.onload = function() {
-				var source = audioContext.createBufferSource();
-				source.buffer = audioContext.createBuffer(request.response, false);
-				setupFilter(index, source);
-				filters[index].source = source;
-			}
-			request.send();
-		}
+		});
 	}
+}
 
-	function setupFilter(index, source) {
-		var lo = audioContext.createBiquadFilter();
-		lo.type = "lowpass";
-		lo.frequency.value = audioContext.sampleRate/2;
+function loadSC() {
+	var url = document.getElementById("url").value;
+	SC.get('/resolve', {url:url}, function(track) {
+		if (track.stream_url) {
+			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, true);
+		}
+	});
+}
 
-		var hi = audioContext.createBiquadFilter();
-		hi.type = "highpass";
-		hi.frequency.value = 10;
-
-		source.connect(lo);
-		lo.connect(hi);
-		hi.connect(audioContext.destination);
-
-		filters[index] = {x:0.5, y:0.5, lo:lo, hi:hi};
-		vars.nLoaded++;
-		if (stems) setFilter(index, true);
-		requestAnimationFrame(draw);
+function loadAudio(index, src, play) {
+	if (window.AudioContext) {
+		audioContext = audioContext || new AudioContext();
+		var audio = document.createElement("audio");
+		audio.oncanplay = function(event) {
+			var source = audioContext.createMediaElementSource(event.target);
+			setupFilter(index, source);
+			filters[index].audio = event.target;
+			if (play) playStart();
+		}
+		audio.crossOrigin = "anonymous";
+		audio.src = src;
 	}
+	else if (window.webkitAudioContext) {
+		audioContext = audioContext || new webkitAudioContext();
+		var request = new XMLHttpRequest();
+		request.open("get", src, true);
+		request.responseType = "arraybuffer";
+		request.onload = function() {
+			var source = audioContext.createBufferSource();
+			source.buffer = audioContext.createBuffer(request.response, false);
+			setupFilter(index, source);
+			filters[index].source = source;
+		}
+		request.send();
+	}
+}
+
+function setupFilter(index, source) {
+	var lo = audioContext.createBiquadFilter();
+	lo.type = "lowpass";
+	lo.frequency.value = audioContext.sampleRate/2;
+
+	var hi = audioContext.createBiquadFilter();
+	hi.type = "highpass";
+	hi.frequency.value = 10;
+
+	source.connect(lo);
+	lo.connect(hi);
+	hi.connect(audioContext.destination);
+
+	filters[index] = {on:true, x:0.5, y:0.5, lo:lo, hi:hi};
+	vars.nLoaded++;
+	if (vars.stems) setFilter(index, true);
+	requestAnimationFrame(draw);
 }
 
 function setFilter(index, value) {
 	filters[index].on = value;
 
-	var cellWidth = canvas.width / stems.length;
+	var cellWidth = canvas.width / vars.stems.length;
 	var font = context2d.font = (value ? "bold " : "") + vars.textHeight + "pt sans-serif";
-	var width = context2d.measureText(stems[index].name).width;
+	var width = context2d.measureText(vars.stems[index].name).width;
 	var x = (cellWidth - width)/2 + cellWidth*index;
 	texts[index] = {font:font, x:x, x2:x+width};
 
@@ -95,6 +110,18 @@ function setFilter(index, value) {
 			vars.nOn++;
 		}
 	}
+}
+
+function playStart() {
+	for (var i = filters.length-1; i >= 0; --i) {
+		if (window.AudioContext) {
+			filters[i].audio.play();
+		} else {
+			filters[i].source.start(0);
+		}
+		vars.playing = true;
+	}
+	if (vars.playing) requestAnimationFrame(draw);
 }
 
 function draw(time) {
@@ -113,28 +140,28 @@ function draw(time) {
 		context2d.lineTo(canvas.width/2, canvas.height);
 		context2d.stroke();
 
-		if (vars.play) {
+		if (vars.playing) {
 			var n = 0, arc = Math.PI*2 / vars.nOn;
 			context2d.lineWidth = 2;
 
 			for (var i = filters.length-1; i >= 0; --i) {
-				context2d.strokeStyle = stems ? stems[i].color : "darkgray";
-				if (filters[i].on) {
-					++n;
+				context2d.strokeStyle = vars.stems ? vars.stems[i].color : "darkgray";
+				if (vars.stems && filters[i].on) {
 					drawArc(arc * n, arc * (n+1));
+					++n;
 				} else {
 					drawArc(0, Math.PI*2);
 				}
 			}
 		}
 
-		if (stems) {
+		if (vars.stems) {
 			var y = canvas.height-2;
 			for (var i = texts.length-1; i >= 0; --i) {
 				if (texts[i]) {
-					context2d.fillStyle = stems[i].color;
+					context2d.fillStyle = vars.stems[i].color;
 					context2d.font = texts[i].font;
-					context2d.fillText(stems[i].name, texts[i].x, y);
+					context2d.fillText(vars.stems[i].name, texts[i].x, y);
 				}
 			}
 		}
@@ -175,7 +202,7 @@ function doFilters(x, y) {
 	}
 }
 
-function keyDown(event) {
+function keyPress(event) {
 	var i = event.keyCode-49;
 	if (i >= 0 && i <= filters.length-1) {
 		setFilter(i, !filters[i].on);
@@ -184,6 +211,10 @@ function keyDown(event) {
 }
 
 function mouseDown(event) {
+	if (!vars.stems && !vars.playing) {
+		loadSC();
+	}
+
 	vars.click = true;
 	mouseXY(event);
 
@@ -227,16 +258,8 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.play && event.target == canvas && (!stems || vars.nLoaded == stems.length)) {
-		for (var i = filters.length-1; i >= 0; --i) {
-			if (window.AudioContext) {
-				filters[i].audio.play();
-			} else {
-				filters[i].source.start(0);
-			}
-			vars.play = true;
-		}
-		if (vars.play) requestAnimationFrame(draw);
+	if (!vars.playing && event.target == canvas && (!vars.stems || vars.nLoaded == vars.stems.length)) {
+		playStart();
 	}
 
 	vars.click = false;
