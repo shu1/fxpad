@@ -155,7 +155,11 @@ function playStart() {
 			filters[i].audio.play();
 		}
 		else if (filters[i].source) {
-			filters[i].source.noteOn(0);
+			if (filters[i].source.start) {
+				filters[i].source.start(0);
+			} else {
+				filters[i].source.noteOn(0);
+			}
 		}
 		vars.playing = true;
 	}
