@@ -31,6 +31,8 @@ window.onload = function() {
 	canvas.onmousedown = mouseDown;
 	canvas.onmousemove = mouseMove;
 	window.onmouseup = mouseUp;
+	canvas.ondrop = loadFile;
+	canvas.ondragover  = function(event){event.preventDefault()};
 
 	window.onkeypress = function(event) {
 		var i = event.keyCode-49;
@@ -40,9 +42,22 @@ window.onload = function() {
 		}
 	}
 
-	canvas.ondragover  = function(event){event.preventDefault();};
-	canvas.ondrop = function(event) {event.preventDefault();
-		var file = event.dataTransfer.files[0];
+	var file = document.getElementById("file");
+	if (file) {
+		file.onchange = loadFile;
+	}
+
+	var text = document.getElementById("text");
+	if (text) {
+		text.onkeypress = function(event) {
+			if (event.keyCode == 13) {
+				loadSC();
+			}
+		}
+	}
+
+	function loadFile(event) {
+		var file = (event.target.files || event.dataTransfer.files)[0];
 		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
 			var reader = new FileReader();
 			reader.onload = function(event) {
@@ -52,20 +67,12 @@ window.onload = function() {
 		} else {
 			console.error("Unsupported file type " + file.type);
 		}
-	}
-
-	var url = document.getElementById("url");
-	if (url) {
-		url.onkeypress = function(event) {
-			if (event.keyCode == 13) {
-				loadSC();
-			}
-		}
+		event.preventDefault();
 	}
 }
 
 function loadSC() {
-	var url = document.getElementById("url").value;
+	var url = document.getElementById("text").value;
 	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
 			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, true);
@@ -80,7 +87,7 @@ function loadAudio(index, src, play) {
     	request.withCredentials = true;
 		request.responseType = "arraybuffer";
 		request.onload = function() {
-			loadBuffer(index, request.response);
+			loadBuffer(index, request.response, play);
 		}
 		request.send();
 	} else {
