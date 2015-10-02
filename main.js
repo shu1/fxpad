@@ -9,14 +9,9 @@ var vars = {
 }
 
 window.onload = function() {
-	if (window.AudioContext) {
-		audioContext = new AudioContext();
-	}
-	else if (window.webkitAudioContext) {
-		audioContext = new webkitAudioContext();
-		if (navigator.userAgent.indexOf("Mobile") >= 0) {
-			vars.buffer = true;
-		}
+	audioContext = new (window.AudioContext || window.webkitAudioContext)();
+	if (navigator.userAgent.indexOf("Mobile") >= 0) {
+		vars.buffer = true;
 	}
 
 	if (typeof stems != "undefined") {
@@ -48,7 +43,7 @@ window.onload = function() {
 	canvas.ondragover  = function(event){event.preventDefault();};
 	canvas.ondrop = function(event) {event.preventDefault();
 		var file = event.dataTransfer.files[0];
-		if (file.type.indexOf("audio") >= 0) {
+		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
 			var reader = new FileReader();
 			reader.onload = function(event) {
 				loadBuffer(vars.nLoaded, event.target.result, true);
