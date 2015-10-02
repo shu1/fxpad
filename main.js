@@ -45,6 +45,20 @@ window.onload = function() {
 		}
 	}
 
+	canvas.ondragover  = function(event){event.preventDefault();};
+	canvas.ondrop = function(event) {event.preventDefault();
+		var file = event.dataTransfer.files[0];
+		if (file.type.indexOf("audio") >= 0) {
+			var reader = new FileReader();
+			reader.onload = function(event) {
+				loadBuffer(vars.nLoaded, event.target.result, true);
+			}
+			reader.readAsArrayBuffer(file);
+		} else {
+			console.error("Unsupported file type " + file.type);
+		}
+	}
+
 	var url = document.getElementById("url");
 	if (url) {
 		url.onkeypress = function(event) {
@@ -68,26 +82,33 @@ function loadAudio(index, src, play) {
 	if (vars.buffer) {
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
+    	request.withCredentials = true;
 		request.responseType = "arraybuffer";
 		request.onload = function() {
-			var source = audioContext.createBufferSource();
-			source.buffer = audioContext.createBuffer(request.response, false);
-			setupFilter(index, source);
-			filters[index].source = source;
+			loadBuffer(index, request.response);
 		}
-    	request.withCredentials = true;
 		request.send();
 	} else {
 		var audio = document.createElement("audio");
+		audio.crossOrigin = "anonymous";
 		audio.oncanplay = function() {
 			var source = audioContext.createMediaElementSource(audio);
 			setupFilter(index, source);
 			filters[index].audio = audio;
 			if (play) playStart();
 		}
-		audio.crossOrigin = "anonymous";
 		audio.src = src;
 	}
+}
+
+function loadBuffer(index, data, play) {
+	var source = audioContext.createBufferSource();
+	audioContext.decodeAudioData(data, function(buffer) {
+		source.buffer = buffer;
+		setupFilter(index, source);
+		filters[index].source = source;
+		if (play) playStart();
+	});
 }
 
 function setupFilter(index, source) {
