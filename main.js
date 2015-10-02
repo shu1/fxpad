@@ -28,24 +28,23 @@ window.onload = function() {
 
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
-
-	canvas.addEventListener("touchstart", mouseDown);
-	canvas.addEventListener("touchmove", mouseMove);
-	window.addEventListener("touchend", mouseUp);
-	canvas.addEventListener("mousedown", mouseDown);
-	canvas.addEventListener("mousemove", mouseMove);
-	window.addEventListener("mouseup", mouseUp);
-	window.addEventListener("keypress", keyPress);
-
 	requestAnimationFrame(draw);
+
+	canvas.ontouchstart = mouseDown;
+	canvas.ontouchmove = mouseMove;
+	window.ontouchend = mouseUp;
+	canvas.onmousedown = mouseDown;
+	canvas.onmousemove = mouseMove;
+	window.onmouseup = mouseUp;
+	window.onkeypress = keyPress;
 
 	var url = document.getElementById("url");
 	if (url) {
-		url.addEventListener("keypress", function(event) {
+		url.onkeypress = function(event) {
 			if (event.keyCode == 13) {
 				loadSC();
 			}
-		});
+		}
 	}
 }
 
@@ -73,7 +72,7 @@ function loadAudio(index, src, play) {
 		request.send();
 	} else {
 		var audio = document.createElement("audio");
-		audio.oncanplay = function(event) {
+		audio.oncanplay = function() {
 			var source = audioContext.createMediaElementSource(audio);
 			setupFilter(index, source);
 			filters[index].audio = audio;
@@ -237,7 +236,7 @@ function mouseDown(event) {
 		}
 	}
 
-	if (!vars.drag && audioContext) {
+	if (!vars.drag) {
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
 	requestAnimationFrame(draw);
@@ -258,7 +257,7 @@ function mouseXY(event) {
 
 function mouseMove(event) {
 	if (vars.click) {
-		if (!vars.drag && audioContext) {
+		if (!vars.drag) {
 			mouseXY(event);
 			doFilters(vars.x / canvas.width, vars.y / canvas.height);
 			requestAnimationFrame(draw);
