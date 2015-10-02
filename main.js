@@ -36,7 +36,14 @@ window.onload = function() {
 	canvas.onmousedown = mouseDown;
 	canvas.onmousemove = mouseMove;
 	window.onmouseup = mouseUp;
-	window.onkeypress = keyPress;
+
+	window.onkeypress = function(event) {
+		var i = event.keyCode-49;
+		if (i >= 0 && i <= filters.length-1) {
+			setFilter(i, !filters[i].on);
+			requestAnimationFrame(draw);
+		}
+	}
 
 	var url = document.getElementById("url");
 	if (url) {
@@ -208,14 +215,6 @@ function doFilters(x, y) {
 			filters[i].x = x;
 			filters[i].y = y;
 		}
-	}
-}
-
-function keyPress(event) {
-	var i = event.keyCode-49;
-	if (i >= 0 && i <= filters.length-1) {
-		setFilter(i, !filters[i].on);
-		requestAnimationFrame(draw);
 	}
 }
 
