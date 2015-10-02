@@ -10,7 +10,7 @@ var vars = {
 
 window.onload = function() {
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
-	if (navigator.userAgent.indexOf("Mobile") >= 0) {
+	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0) {
 		vars.buffer = true;
 	}
 
@@ -155,7 +155,7 @@ function playStart() {
 			filters[i].audio.play();
 		}
 		else if (filters[i].source) {
-			filters[i].source.start(0);
+			filters[i].source.noteOn(0);
 		}
 		vars.playing = true;
 	}
@@ -297,9 +297,31 @@ function mouseUp(event) {
 	vars.drag = false;
 }
 })();
+(function() {
+var lastTime = 0;
+var vendors = ['webkit'];
+for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+	window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+	window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+}
+if (!window.requestAnimationFrame)
+	window.requestAnimationFrame = function(callback, element) {
+		var currTime = new Date().getTime();
+		var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+		var id = window.setTimeout(function(){callback(currTime + timeToCall)}, timeToCall);
+		lastTime = currTime + timeToCall;
+		return id;
+	};
+if (!window.cancelAnimationFrame)
+	window.cancelAnimationFrame = function(id) {
+		clearTimeout(id);
+	};
+}());
+if (!window.nwf) {
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
 ga('create', 'UA-7050108-2', 'auto');
 ga('send', 'pageview');
+}
