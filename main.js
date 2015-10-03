@@ -9,10 +9,11 @@ var vars = {
 }
 
 window.onload = function() {
-	audioContext = new (window.AudioContext || window.webkitAudioContext)();
-	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0) {
-		vars.buffer = true;
+	if (!window.nwf && navigator.userAgent.indexOf("Mobile") < 0) {
+		vars.bAudio = true;
 	}
+
+	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 	if (typeof stems != "undefined") {
 		vars.stems = stems;
@@ -31,8 +32,6 @@ window.onload = function() {
 	canvas.onmousedown = mouseDown;
 	canvas.onmousemove = mouseMove;
 	window.onmouseup = mouseUp;
-	canvas.ondrop = loadFile;
-	canvas.ondragover  = function(event){event.preventDefault()};
 
 	window.onkeypress = function(event) {
 		var i = event.keyCode-49;
@@ -42,18 +41,14 @@ window.onload = function() {
 		}
 	}
 
+	canvas.ondrop = loadFile;
+	canvas.ondragover  = function(event) {
+		event.preventDefault()
+	}
+
 	var file = document.getElementById("file");
 	if (file) {
 		file.onchange = loadFile;
-	}
-
-	var text = document.getElementById("text");
-	if (text) {
-		text.onkeypress = function(event) {
-			if (event.keyCode == 13) {
-				loadSC();
-			}
-		}
 	}
 
 	function loadFile(event) {
@@ -69,6 +64,15 @@ window.onload = function() {
 		}
 		event.preventDefault();
 	}
+
+	var text = document.getElementById("text");
+	if (text) {
+		text.onkeypress = function(event) {
+			if (event.keyCode == 13) {
+				loadSC();
+			}
+		}
+	}
 }
 
 function loadSC() {
@@ -81,16 +85,7 @@ function loadSC() {
 }
 
 function loadAudio(index, src, play) {
-	if (vars.buffer) {
-		var request = new XMLHttpRequest();
-		request.open("get", src, true);
-    	request.withCredentials = true;
-		request.responseType = "arraybuffer";
-		request.onload = function() {
-			loadBuffer(index, request.response, play);
-		}
-		request.send();
-	} else {
+	if (vars.bAudio) {
 		var audio = document.createElement("audio");
 		audio.crossOrigin = "anonymous";
 		audio.oncanplay = function() {
@@ -100,6 +95,15 @@ function loadAudio(index, src, play) {
 			if (play) playStart();
 		}
 		audio.src = src;
+	} else {
+		var request = new XMLHttpRequest();
+		request.open("get", src, true);
+    	request.withCredentials = true;
+		request.responseType = "arraybuffer";
+		request.onload = function() {
+			loadBuffer(index, request.response, play);
+		}
+		request.send();
 	}
 }
 
@@ -153,8 +157,7 @@ function playStart() {
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].audio) {
 			filters[i].audio.play();
-		}
-		else if (filters[i].source) {
+		} else {
 			if (filters[i].source.start) {
 				filters[i].source.start(0);
 			} else {
@@ -246,10 +249,6 @@ function doFilters(x, y) {
 }
 
 function mouseDown(event) {
-	if (!vars.stems && !vars.playing) {
-		loadSC();
-	}
-
 	vars.click = true;
 	mouseXY(event);
 
@@ -293,7 +292,10 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.playing && event.target == canvas && (!vars.stems || vars.nLoaded == vars.stems.length)) {
+	if (!vars.playing && !vars.stems) {
+		loadSC();
+	}
+	else if (!vars.playing && event.target == canvas && (!vars.stems || vars.nLoaded == vars.stems.length)) {
 		playStart();
 	}
 
