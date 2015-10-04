@@ -55,7 +55,8 @@ window.onload = function() {
 
 	function loadFile(event) {
 		var file = (event.target.files || event.dataTransfer.files)[0];
-		log("loadFile()");
+		log("loadFile(" + file.name + ")");
+
 		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
 			var reader = new FileReader();
 			reader.onload = function(event) {
@@ -86,7 +87,6 @@ function loadSC() {
 			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, true);
 		}
 	});
-	requestAnimationFrame(draw);
 }
 
 function loadAudio(index, src, play) {
@@ -112,7 +112,6 @@ function loadAudio(index, src, play) {
 		}
 		request.send();
 	}
-	requestAnimationFrame(draw);
 }
 
 function loadBuffer(index, data, play) {
@@ -124,7 +123,6 @@ function loadBuffer(index, data, play) {
 		filters[index].source = source;
 		if (play) playStart();
 	});
-	requestAnimationFrame(draw);
 }
 
 function setupFilter(index, source) {
@@ -144,7 +142,6 @@ function setupFilter(index, source) {
 	filters[index] = {on:true, x:0.5, y:0.5, lo:lo, hi:hi};
 	vars.nLoaded++;
 	if (vars.stems) setFilter(index, true);
-	requestAnimationFrame(draw);
 }
 
 function setFilter(index, value) {
@@ -163,26 +160,24 @@ function setFilter(index, value) {
 			vars.nOn++;
 		}
 	}
-	requestAnimationFrame(draw);
 }
 
 function playStart() {
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].audio) {
-			log("play(" + i + ")");
 			filters[i].audio.play();
+			log("play(" + i + ")");
 		} else {
 			if (filters[i].source.start) {
-				log("start(" + i + ")");
 				filters[i].source.start(0);
+				log("start(" + i + ")");
 			} else {
-				log("noteOn(" + i + ")");
 				filters[i].source.noteOn(0);
+				log("noteOn(" + i + ")");
 			}
 		}
 		vars.playing = true;
 	}
-	requestAnimationFrame(draw);
 }
 
 function draw(time) {
@@ -281,6 +276,7 @@ function mouseDown(event) {
 	if (!vars.drag) {
 		doFilters(vars.x / canvas.width, vars.y / canvas.height);
 	}
+
 	requestAnimationFrame(draw);
 	event.preventDefault();
 }
@@ -335,6 +331,8 @@ function log(text) {
 	if (context2d.measureText(vars.text).width > canvas.width) {
 		logs.shift();
 	}
+
+	requestAnimationFrame(draw);
 }
 })();
 (function() {
