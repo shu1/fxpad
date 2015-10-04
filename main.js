@@ -2,7 +2,7 @@
 (function() {
 var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};
 
-var colors = ["red", "green", "blue", "yellow"]
+var colors = ["red", "green", "blue", "orange"]
 
 var stems = [
 	{text:"Music", src:"Music" + audioType},
@@ -13,15 +13,13 @@ var stems = [
 window.onload = function() {
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
-
-	vars.textY = canvas.height-6;
-	vars.textHeight = 18;
-
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
 	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0) {
 		vars.useBuffer = true;
 	}
+
+	vars.textY = canvas.height-6;
+	vars.textHeight = 18;
 
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
@@ -59,22 +57,6 @@ window.onload = function() {
 		file.onchange = loadFile;
 	}
 
-	function loadFile(event) {
-		var file = (event.target.files || event.dataTransfer.files)[0];
-		log("loadFile(" + file.name + ")");
-
-		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
-			var reader = new FileReader();
-			reader.onload = function(event) {
-				loadBuffer(vars.nLoaded, event.target.result, file.name, true);
-			}
-			reader.readAsArrayBuffer(file);
-		} else {
-			log("Unsupported file type " + file.type);
-		}
-		event.preventDefault();
-	}
-
 	var text = document.getElementById("text");
 	if (text) {
 		text.onkeypress = function(event) {
@@ -92,6 +74,22 @@ window.onload = function() {
 	}
 
 	requestAnimationFrame(draw);
+}
+
+function loadFile(event) {
+	var file = (event.target.files || event.dataTransfer.files)[0];
+	log("loadFile(" + file.name + ")");
+
+	if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
+		var reader = new FileReader();
+		reader.onload = function(event) {
+			loadBuffer(vars.nLoaded, event.target.result, file.name, true);
+		}
+		reader.readAsArrayBuffer(file);
+	} else {
+		log("Unsupported file type " + file.type);
+	}
+	event.preventDefault();
 }
 
 function loadSC() {
