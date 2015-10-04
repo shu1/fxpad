@@ -21,11 +21,12 @@ window.onload = function() {
 	vars.textY = canvas.height-6;
 	vars.textHeight = 18;
 
+	vars.nOn = 0;
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
 	for (var i = 0; i < stems.length; ++i) {
 		vars.nLoad++;
-		loadAudio(i, stems[i].src, stems[i].src);
+		loadAudio(i, stems[i].src, stems[i].text);
 	}
 
 	if (window.PointerEvent) {
@@ -43,7 +44,7 @@ window.onload = function() {
 	window.onkeypress = function(event) {
 		var i = event.keyCode-49;
 		if (i >= 0 && i <= filters.length-1) {
-			setFilter(i, !filters[i].on);
+			toggleFilter(i);
 		}
 	}
 
@@ -154,27 +155,37 @@ function setupFilter(index, source, text) {
 
 	filters[index] = {on:true, x:0.5, y:0.5, text:text, lo:lo, hi:hi};
 	vars.nLoaded++;
-	setFilter(index, true);
-}
-
-function setFilter(index, value) {
-	log("setFilter(" + index + (value ? ", on)" : ", off)"));
-	filters[index].on = value;
+	vars.nOn++;
 
 	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
-	var cellWidth = canvas.width / n;
-	vars.nOn = 0;
+	vars.cellWidth = canvas.width / n;
+	context2d.font = "bold " + vars.textHeight + "pt sans-serif";
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i]) {
-			var font = context2d.font = (filters[i].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
-			var width = context2d.measureText(filters[i].text).width;
-			var x = (cellWidth - width)/2 + cellWidth*i;
-			texts[i] = {font:font, x:x, x2:x+width};
-
-			if (filters[i].on) {
-				vars.nOn++;
+			while (context2d.measureText(filters[i].text).width > vars.cellWidth) {
+				filters[i].text = filters[i].text.slice(0,-1);
 			}
+			setText(i);
 		}
+	}
+}
+
+function setText(index) {
+	var font = context2d.font = (filters[index].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
+	var width = context2d.measureText(filters[index].text).width;
+	var x = (vars.cellWidth - width)/2 + vars.cellWidth * index;
+	texts[index] = {font:font, x:x, x2:x + width};
+}
+
+function toggleFilter(index) {
+	log("setFilter(" + index + (filters[index].on ? ", off)" : ", on)"));
+	filters[index].on = !filters[index].on;
+	setText(index);
+
+	if (filters[index].on) {
+		vars.nOn++;
+	} else {
+		vars.nOn--;
 	}
 }
 
@@ -281,7 +292,7 @@ function mouseDown(event) {
 	if (vars.y > vars.textY - vars.textHeight) {
 		for (var i = texts.length-1; i >= 0; --i) {
 			if (vars.x > texts[i].x && vars.x < texts[i].x2) {
-				setFilter(i, !filters[i].on);
+				toggleFilter(i);
 				vars.drag = true;
 			}
 		}
