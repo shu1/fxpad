@@ -1,30 +1,34 @@
 "use strict";
 (function() {
-var canvas, context2d, audioContext, filters=[], texts=[], logs=[];
+var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};
 
 var colors = ["red", "green", "blue", "yellow"]
 
-var vars = {
-	textHeight:18,
-	nLoaded:0
-}
+var type = ".m4a";
+var stems = [
+	{text:"Music", src:"Music" + type},
+	{text:"Vocals", src:"Vocals" + type},
+	{text:"BG Vocals", src:"BGVocals" + type}
+]
 
 window.onload = function() {
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
+
 	vars.textY = canvas.height-6;
+	vars.textHeight = 18;
 
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-	if (!window.nwf && navigator.userAgent.indexOf("Mobile") < 0) {
-		vars.bAudio = true;
+	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0) {
+		vars.useBuffer = true;
 	}
 
-	if (typeof stems != "undefined") {
-		vars.stems = stems;
-		for (var i = 0; i < vars.stems.length; ++i) {
-			loadAudio(i, vars.stems[i].src);
-		}
+	vars.nLoad = 0;
+	vars.nLoaded = 0;
+	for (var i = 0; i < stems.length; ++i) {
+		vars.nLoad++;
+		loadAudio(i, stems[i].src, stems[i].src);
 	}
 
 	if (window.PointerEvent) {
@@ -63,7 +67,7 @@ window.onload = function() {
 		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
 			var reader = new FileReader();
 			reader.onload = function(event) {
-				loadBuffer(vars.nLoaded, event.target.result, true);
+				loadBuffer(vars.nLoaded, event.target.result, file.name, true);
 			}
 			reader.readAsArrayBuffer(file);
 		} else {
@@ -81,57 +85,64 @@ window.onload = function() {
 		}
 	}
 
+	var span = document.getElementById("span");
+	if (span) {
+		span.onclick = function(event) {
+			loadSC();
+		}
+	}
+
 	requestAnimationFrame(draw);
 }
 
 function loadSC() {
 	log("loadSC()");
-	var url = document.getElementById("text").value;
-	SC.get('/resolve', {url:url}, function(track) {
+	SC.get('/resolve', {url:document.getElementById("text").value}, function(track) {
 		if (track.stream_url) {
-			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, true);
+			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, track.title, true);
 		}
 	});
 }
 
-function loadAudio(index, src, play) {
-	if (vars.bAudio) {
-		log("loadAudio(" + index + ", " + src + (play ? ", play)" : ")"));
-		var audio = document.createElement("audio");
-		audio.crossOrigin = "anonymous";
-		audio.oncanplay = function() {
-			var source = audioContext.createMediaElementSource(audio);
-			setupFilter(index, source);
-			filters[index].audio = audio;
-			if (play) playStart();
-		}
-		audio.src = src;
-	} else {
+function loadAudio(index, src, text, play) {
+	if (vars.useBuffer) {
 		log("loadBuffer(" + index + ", " + src + (play ? ", play)" : ")"));
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
     	request.withCredentials = true;
 		request.responseType = "arraybuffer";
 		request.onload = function() {
-			loadBuffer(index, request.response, play);
+			loadBuffer(index, request.response, text, play);
 		}
 		request.send();
+	} else {
+		log("loadAudio(" + index + ", " + src + (play ? ", play)" : ")"));
+		var audio = document.createElement("audio");
+		audio.crossOrigin = "anonymous";
+		audio.oncanplay = function() {
+			var source = audioContext.createMediaElementSource(audio);
+			setupFilter(index, source, text);
+			filters[index].audio = audio;
+			if (play) playStart();
+		}
+		audio.src = src;
 	}
 }
 
-function loadBuffer(index, data, play) {
+function loadBuffer(index, data, text, play) {
 	log("loadData(" + index + (play ? ", play)" : ")"));
 	var source = audioContext.createBufferSource();
 	audioContext.decodeAudioData(data, function(buffer) {
 		source.buffer = buffer;
-		setupFilter(index, source);
+		setupFilter(index, source, text);
 		filters[index].source = source;
 		if (play) playStart();
 	});
 }
 
-function setupFilter(index, source) {
+function setupFilter(index, source, text) {
 	log("setupFilter(" + index + ")");
+
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
 	lo.frequency.value = audioContext.sampleRate/2;
@@ -144,25 +155,28 @@ function setupFilter(index, source) {
 	lo.connect(hi);
 	hi.connect(audioContext.destination);
 
-	filters[index] = {on:true, x:0.5, y:0.5, lo:lo, hi:hi};
+	filters[index] = {on:true, x:0.5, y:0.5, text:text, lo:lo, hi:hi};
 	vars.nLoaded++;
-	if (vars.stems) setFilter(index, true);
+	setFilter(index, true);
 }
 
 function setFilter(index, value) {
 	log("setFilter(" + index + (value ? ", on)" : ", off)"));
 	filters[index].on = value;
 
-	var cellWidth = canvas.width / vars.stems.length;
-	var font = context2d.font = (value ? "bold " : "") + vars.textHeight + "pt sans-serif";
-	var width = context2d.measureText(vars.stems[index].src).width;
-	var x = (cellWidth - width)/2 + cellWidth*index;
-	texts[index] = {font:font, x:x, x2:x+width};
-
+	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
+	var cellWidth = canvas.width / n;
 	vars.nOn = 0;
 	for (var i = filters.length-1; i >= 0; --i) {
-		if (filters[i] && filters[i].on) {
-			vars.nOn++;
+		if (filters[i]) {
+			var font = context2d.font = (filters[i].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
+			var width = context2d.measureText(filters[i].text).width;
+			var x = (cellWidth - width)/2 + cellWidth*i;
+			texts[i] = {font:font, x:x, x2:x+width};
+
+			if (filters[i].on) {
+				vars.nOn++;
+			}
 		}
 	}
 }
@@ -205,8 +219,8 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = filters.length-1; i >= 0; --i) {
-			context2d.strokeStyle = vars.stems ? colors[i] : "darkgray";
-			if (vars.stems && filters[i].on) {
+			context2d.strokeStyle = colors[i];
+			if (filters[i].on) {
 				drawArc(arc * n, arc * (n+1));
 				++n;
 			} else {
@@ -215,13 +229,11 @@ function draw(time) {
 		}
 	}
 
-	if (vars.stems) {
-		for (var i = texts.length-1; i >= 0; --i) {
-			if (texts[i]) {
-				context2d.font = texts[i].font;
-				context2d.fillStyle = colors[i];
-				context2d.fillText(vars.stems[i].src, texts[i].x, vars.textY);
-			}
+	for (var i = texts.length-1; i >= 0; --i) {
+		if (texts[i]) {
+			context2d.font = texts[i].font;
+			context2d.fillStyle = colors[i];
+			context2d.fillText(filters[i].text, texts[i].x, vars.textY);
 		}
 	}
 
@@ -310,12 +322,8 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.playing && event.target == canvas) {
-		if (vars.stems && vars.nLoaded == vars.stems.length) {
-			playStart();
-		} else {
-			loadSC();
-		}
+	if (!vars.playing && event.target == canvas && vars.nLoaded >= vars.nLoad) {
+		playStart();
 	}
 
 	vars.click = false;
