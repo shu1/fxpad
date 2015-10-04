@@ -355,8 +355,13 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.playing && event.target == canvas && vars.nLoaded >= vars.nLoad) {
-		playStart();
+	if (!vars.playing && event.target == canvas) {
+		if (vars.nLoaded >= vars.nLoad) {
+			playStart();
+		}
+		else if (!vars.useBuffer) {
+			loadSC();
+		}
 	}
 
 	vars.click = false;
