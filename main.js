@@ -2,6 +2,8 @@
 (function() {
 var canvas, context2d, audioContext, filters=[], texts=[];
 
+var colors = ["red", "green", "blue", "yellow"]
+
 var vars = {
 	nLoaded:0,
 	time:0
@@ -194,7 +196,7 @@ function draw(time) {
 			context2d.lineWidth = 3;
 
 			for (var i = filters.length-1; i >= 0; --i) {
-				context2d.strokeStyle = vars.stems ? vars.stems[i].color : "darkgray";
+				context2d.strokeStyle = vars.stems ? colors[i] : "darkgray";
 				if (vars.stems && filters[i].on) {
 					drawArc(arc * n, arc * (n+1));
 					++n;
@@ -207,7 +209,7 @@ function draw(time) {
 		if (vars.stems) {
 			for (var i = texts.length-1; i >= 0; --i) {
 				if (texts[i]) {
-					context2d.fillStyle = vars.stems[i].color;
+					context2d.fillStyle = colors[i];
 					context2d.font = texts[i].font;
 					context2d.fillText(vars.stems[i].src, texts[i].x, vars.textY);
 				}
