@@ -68,10 +68,8 @@ window.onload = function() {
 	}
 
 	var span = document.getElementById("span");
-	if (span) {
-		span.onclick = function(event) {
-			loadSC();
-		}
+	if (span && !vars.useBuffer) {
+		span.style.display = "inline";
 	}
 
 	requestAnimationFrame(draw);
@@ -192,15 +190,15 @@ function toggleFilter(index) {
 function playStart() {
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].audio) {
-			filters[i].audio.play();
 			log("play(" + i + ")");
+			filters[i].audio.play();
 		} else {
 			if (filters[i].source.start) {
-				filters[i].source.start(0);
 				log("start(" + i + ")");
+				filters[i].source.start(0);
 			} else {
-				filters[i].source.noteOn(0);
 				log("noteOn(" + i + ")");
+				filters[i].source.noteOn(0);
 			}
 		}
 		vars.playing = true;
