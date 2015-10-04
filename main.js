@@ -296,11 +296,12 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.playing && !vars.stems) {
-		loadSC();
-	}
-	else if (!vars.playing && event.target == canvas && (!vars.stems || vars.nLoaded == vars.stems.length)) {
-		playStart();
+	if (!vars.playing && event.target == canvas) {
+		if (vars.stems && vars.nLoaded == vars.stems.length) {
+			playStart();
+		} else {
+			loadSC();
+		}
 	}
 
 	vars.click = false;
