@@ -82,6 +82,7 @@ function loadFile(event) {
 	if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
 		var reader = new FileReader();
 		reader.onload = function(event) {
+			pauseStop();
 			loadBuffer(vars.nLoaded, event.target.result, file.name, true);
 		}
 		reader.readAsArrayBuffer(file);
@@ -95,6 +96,7 @@ function loadSC() {
 	log("loadSC()");
 	SC.get('/resolve', {url:document.getElementById("text").value}, function(track) {
 		if (track.stream_url) {
+			pauseStop();
 			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, track.title, true);
 		}
 	});
@@ -202,6 +204,31 @@ function playStart() {
 			}
 		}
 		vars.playing = true;
+	}
+}
+
+function pauseStop() {
+	if (vars.nLoad > 0) {
+		for (var i = filters.length-1; i >= 0; --i) {
+			if (filters[i].audio) {
+				log("pause(" + i + ")");
+				filters[i].audio.pause();
+			} else {
+				if (filters[i].source.stop) {
+					log("stop(" + i + ")");
+					filters[i].source.stop(0);
+				} else {
+					log("noteOff(" + i + ")");
+					filters[i].source.noteOff(0);
+				}
+			}
+		}
+		filters.length = 0;
+		texts.length = 0;
+		vars.nLoaded = 0;
+		vars.nLoad = 0;
+		vars.nOn = 0;
+		vars.playing = false;
 	}
 }
 
