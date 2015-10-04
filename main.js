@@ -27,9 +27,11 @@ window.onload = function() {
 		}
 	}
 
-	canvas.ontouchstart = mouseDown;
-	canvas.ontouchmove = mouseMove;
-	window.ontouchend = mouseUp;
+	if (!window.PointerEvent) {
+		canvas.ontouchstart = mouseDown;
+		canvas.ontouchmove = mouseMove;
+		window.ontouchend = mouseUp;
+	}
 	canvas.onmousedown = mouseDown;
 	canvas.onmousemove = mouseMove;
 	window.onmouseup = mouseUp;
