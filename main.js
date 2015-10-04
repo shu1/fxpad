@@ -4,11 +4,10 @@ var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};
 
 var colors = ["red", "green", "blue", "yellow"]
 
-var type = ".m4a";
 var stems = [
-	{text:"Music", src:"Music" + type},
-	{text:"Vocals", src:"Vocals" + type},
-	{text:"BG Vocals", src:"BGVocals" + type}
+	{text:"Music", src:"Music" + audioType},
+	{text:"Vocals", src:"Vocals" + audioType},
+	{text:"BG Vocals", src:"BGVocals" + audioType}
 ]
 
 window.onload = function() {
