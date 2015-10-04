@@ -14,11 +14,11 @@ window.onload = function() {
 	context2d = canvas.getContext("2d");
 	vars.textY = canvas.height-6;
 
+	audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
 	if (!window.nwf && navigator.userAgent.indexOf("Mobile") < 0) {
 		vars.bAudio = true;
 	}
-
-	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 	if (typeof stems != "undefined") {
 		vars.stems = stems;
@@ -26,8 +26,6 @@ window.onload = function() {
 			loadAudio(i, vars.stems[i].src);
 		}
 	}
-
-	requestAnimationFrame(draw);
 
 	canvas.ontouchstart = mouseDown;
 	canvas.ontouchmove = mouseMove;
@@ -64,7 +62,7 @@ window.onload = function() {
 			}
 			reader.readAsArrayBuffer(file);
 		} else {
-			console.error("Unsupported file type " + file.type);
+			log("Unsupported file type " + file.type);
 		}
 		event.preventDefault();
 	}
@@ -77,6 +75,8 @@ window.onload = function() {
 			}
 		}
 	}
+
+	requestAnimationFrame(draw);
 }
 
 function loadSC() {
