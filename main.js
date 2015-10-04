@@ -3,7 +3,6 @@
 var canvas, context2d, audioContext, filters=[], texts=[];
 
 var vars = {
-	textHeight:18,
 	nLoaded:0,
 	time:0
 }
@@ -18,12 +17,16 @@ window.onload = function() {
 	if (typeof stems != "undefined") {
 		vars.stems = stems;
 		for (var i = 0; i < vars.stems.length; ++i) {
-			loadAudio(i, vars.stems[i].file);
+			loadAudio(i, vars.stems[i].src);
 		}
 	}
 
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
+
+	vars.textY = canvas.height-6;
+	vars.textHeight = 18;
+
 	requestAnimationFrame(draw);
 
 	canvas.ontouchstart = mouseDown;
@@ -141,7 +144,7 @@ function setFilter(index, value) {
 
 	var cellWidth = canvas.width / vars.stems.length;
 	var font = context2d.font = (value ? "bold " : "") + vars.textHeight + "pt sans-serif";
-	var width = context2d.measureText(vars.stems[index].name).width;
+	var width = context2d.measureText(vars.stems[index].src).width;
 	var x = (cellWidth - width)/2 + cellWidth*index;
 	texts[index] = {font:font, x:x, x2:x+width};
 
@@ -188,7 +191,7 @@ function draw(time) {
 
 		if (vars.playing) {
 			var n = 0, arc = Math.PI*2 / vars.nOn;
-			context2d.lineWidth = 2;
+			context2d.lineWidth = 3;
 
 			for (var i = filters.length-1; i >= 0; --i) {
 				context2d.strokeStyle = vars.stems ? vars.stems[i].color : "darkgray";
@@ -202,12 +205,11 @@ function draw(time) {
 		}
 
 		if (vars.stems) {
-			var y = canvas.height-2;
 			for (var i = texts.length-1; i >= 0; --i) {
 				if (texts[i]) {
 					context2d.fillStyle = vars.stems[i].color;
 					context2d.font = texts[i].font;
-					context2d.fillText(vars.stems[i].name, texts[i].x, y);
+					context2d.fillText(vars.stems[i].src, texts[i].x, vars.textY);
 				}
 			}
 		}
@@ -252,7 +254,7 @@ function mouseDown(event) {
 	vars.click = true;
 	mouseXY(event);
 
-	if (vars.y > canvas.height - vars.textHeight) {
+	if (vars.y > vars.textY - vars.textHeight) {
 		for (var i = texts.length-1; i >= 0; --i) {
 			if (vars.x > texts[i].x && vars.x < texts[i].x2) {
 				setFilter(i, !filters[i].on);
