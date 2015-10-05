@@ -8,6 +8,15 @@ var stems = [
 	{text:"BG Vocals", src:"BGVocals" + audioType}
 ]
 
+function initVars() {
+	vars.nOn = 0;
+	vars.nLoad = 0;
+	vars.nLoaded = 0;
+	vars.playing = false;
+	filters.length = 0;
+	texts.length = 0;
+}
+
 window.onload = function() {
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
@@ -23,12 +32,11 @@ window.onload = function() {
 	vars.nyquist = audioContext.sampleRate / 2;
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
 
-	vars.nOn = 0;
-	vars.nLoad = 0;
-	vars.nLoaded = 0;
-	for (var i = 0; i < stems.length; ++i) {
+	initVars();
+
+	for (var i = stems.length-1; i >= 0; --i) {
+		loadAudio(vars.nLoad, stems[vars.nLoad].src, stems[vars.nLoad].text);
 		vars.nLoad++;
-		loadAudio(i, stems[i].src, stems[i].text);
 	}
 
 	if (window.PointerEvent) {
@@ -50,14 +58,14 @@ window.onload = function() {
 		}
 	}
 
-	canvas.ondrop = loadFile;
+	canvas.ondrop = loadFiles;
 	canvas.ondragover  = function(event) {
 		event.preventDefault()
 	}
 
 	var file = document.getElementById("file");
 	if (file) {
-		file.onchange = loadFile;
+		file.onchange = loadFiles;
 	}
 
 	var text = document.getElementById("text");
@@ -75,23 +83,29 @@ window.onload = function() {
 	}
 
 	requestAnimationFrame(draw);
-}
 
-function loadFile(event) {
-	var file = (event.target.files || event.dataTransfer.files)[0];	// TODO multiple files
-	log("loadFile(" + file.name + ")");
-
-	if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
-		var reader = new FileReader();
-		reader.onload = function(event) {
-			pauseStop();
-			loadBuffer(vars.nLoaded, event.target.result, file.name, true);
+	function loadFiles(event) {
+		pauseStop(true);
+		var files = event.target.files || event.dataTransfer.files;
+		for (var i = files.length-1; i >= 0; --i) {
+			loadFile(files[i], files.length == 1);
 		}
-		reader.readAsArrayBuffer(file);
-	} else {
-		log("UNSUPPORTED FILE TYPE " + file.type);
+		event.preventDefault();
+
+		function loadFile(file, play) {
+			log("loadFile(" + file.name + ")");
+			if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
+				var reader = new FileReader();
+				reader.onload = function(event) {
+					loadBuffer(vars.nLoad, event.target.result, file.name, play);
+					vars.nLoad++;
+				}
+				reader.readAsArrayBuffer(file);
+			} else {
+				log("UNSUPPORTED FILE TYPE " + file.type);
+			}
+		}
 	}
-	event.preventDefault();
 }
 
 function loadSC() {
@@ -130,7 +144,7 @@ function loadAudio(index, src, text, play) {
 }
 
 function loadBuffer(index, data, text, play) {
-	log("loadData(" + index + (play ? ", play)" : ")"));
+	log("loadData(" + index + ", " + text + (play ? ", play)" : ")"));
 	var source = audioContext.createBufferSource();
 	audioContext.decodeAudioData(data, function(buffer) {
 		source.buffer = buffer;
@@ -211,28 +225,25 @@ function playStart() {
 	}
 }
 
-function pauseStop() {
-	if (vars.nLoad > 0) {
-		for (var i = filters.length-1; i >= 0; --i) {
-			if (filters[i].audio) {
-				log("pause(" + i + ")");
-				filters[i].audio.pause();
-			} else {
-				if (filters[i].source.stop) {
+function pauseStop(force) {
+	if (force || vars.nLoad > 0) {
+		if (vars.playing) {
+			for (var i = filters.length-1; i >= 0; --i) {
+				if (filters[i].audio) {
+					log("pause(" + i + ")");
+					filters[i].audio.pause();
+				}
+				else if (filters[i].source.stop) {
 					log("stop(" + i + ")");
 					filters[i].source.stop(0);
-				} else {
+				}
+				else {
 					log("noteOff(" + i + ")");
 					filters[i].source.noteOff(0);
 				}
 			}
 		}
-		filters.length = 0;
-		texts.length = 0;
-		vars.nLoaded = 0;
-		vars.nLoad = 0;
-		vars.nOn = 0;
-		vars.playing = false;
+		initVars();
 	}
 }
 
