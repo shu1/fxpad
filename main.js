@@ -305,8 +305,10 @@ function doFilters(index) {
 			}
 		}
 
-		vars.filterX = vars.x;
-		vars.filterY = vars.y;
+		if (index == undefined) {
+			vars.filterX = vars.x;
+			vars.filterY = vars.y;
+		}
 	}
 
 	requestAnimationFrame(draw);
