@@ -170,7 +170,7 @@ function initFilter(index, source, text) {
 			setText(i);
 		}
 	}
-	requestAnimationFrame(draw);
+	doFilters();
 }
 
 function setText(index) {
@@ -300,7 +300,7 @@ function doFilters(index) {
 		}
 
 		for (var i = filters.length-1; i >= 0; --i) {
-			if (filters[i].on) {
+			if (filters[i] && filters[i].on) {
 				setFilter(i, q, lo, hi);
 			}
 		}
