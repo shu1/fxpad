@@ -1,7 +1,7 @@
 "use strict";
 (function() {
 var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};
-var colors = ["red", "green", "blue", "orange"]
+var colors = ["red", "green", "blue", "orange"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
@@ -16,6 +16,8 @@ window.onload = function() {
 		vars.useBuffer = true;
 	}
 
+	vars.filterX = canvas.width/2;
+	vars.filterY = canvas.height/2;
 	vars.textY = canvas.height-6;
 	vars.textHeight = 18;
 
@@ -85,7 +87,7 @@ function loadFile(event) {
 		}
 		reader.readAsArrayBuffer(file);
 	} else {
-		log("Unsupported file type " + file.type);
+		log("UNSUPPORTED FILE TYPE " + file.type);
 	}
 	event.preventDefault();
 }
@@ -117,7 +119,7 @@ function loadAudio(index, src, text, play) {
 		audio.crossOrigin = "anonymous";
 		audio.oncanplay = function() {
 			var source = audioContext.createMediaElementSource(audio);
-			setupFilter(index, source, text);
+			initFilters(index, source, text);
 			filters[index].audio = audio;
 			if (play) playStart();
 		}
@@ -130,14 +132,14 @@ function loadBuffer(index, data, text, play) {
 	var source = audioContext.createBufferSource();
 	audioContext.decodeAudioData(data, function(buffer) {
 		source.buffer = buffer;
-		setupFilter(index, source, text);
+		initFilters(index, source, text);
 		filters[index].source = source;
 		if (play) playStart();
 	});
 }
 
-function setupFilter(index, source, text) {
-	log("setupFilter(" + index + ")");
+function initFilters(index, source, text) {
+	log("initFilters(" + index + ")");
 
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
@@ -151,7 +153,7 @@ function setupFilter(index, source, text) {
 	lo.connect(hi);
 	hi.connect(audioContext.destination);
 
-	filters[index] = {on:true, x:0.5, y:0.5, text:text, lo:lo, hi:hi};
+	filters[index] = {on:true, text:text, lo:lo, hi:hi};
 	vars.nLoaded++;
 	vars.nOn++;
 
@@ -177,7 +179,7 @@ function setText(index) {
 }
 
 function toggleFilter(index) {
-	log("setFilter(" + index + (filters[index].on ? ", off)" : ", on)"));
+	log("filter(" + index + (filters[index].on ? ", off)" : ", on)"));
 	filters[index].on = !filters[index].on;
 	setText(index);
 
@@ -186,8 +188,7 @@ function toggleFilter(index) {
 	} else {
 		vars.nOn--;
 	}
-	doFilters(vars.x / canvas.width, vars.y / canvas.height);
-	requestAnimationFrame(draw);
+	doFilters();
 }
 
 function playStart() {
@@ -256,7 +257,7 @@ function draw(time) {
 			if (filters[i].on) {
 				context2d.strokeStyle = (filters.length == 1) ? "gray" : colors[i];
 				context2d.beginPath();
-				context2d.arc(filters[i].x * canvas.width, filters[i].y * canvas.height, 20, arc * n, arc * (n+1));
+				context2d.arc(vars.filterX, vars.filterY, 20, arc * n, arc * (n+1));
 				context2d.stroke();
 				++n;
 			}
@@ -278,39 +279,36 @@ function draw(time) {
 	}
 }
 
-function doFilters(x, y) {
+function doFilters() {
 	var nyquist = audioContext.sampleRate / 2;
-	var nOctaves = Math.log(nyquist / 40) / Math.LN2;
-	var res = Math.abs(y - 0.5) * 2;	// map 0.5 to 0
+	var octaves = Math.log(nyquist / 40) / Math.LN2;
+	var q = Math.abs(vars.y / canvas.height - 0.5) * 60;
 
-	var lo = 0.99, hi = 0.01;	// not max to prevent audio deterioration
-	if (x < 0.5) {	// left half is low pass
-		lo = x * 2 * 0.8 + 0.2; // map 0 ~ 0.5 to 0.2 ~ 1
-	}
-	else if (x > 0.5) {	// right half is high pass
-		hi = (x - 0.5) * 2 * 0.8;	// map 0.5 ~ 1 to 0 ~ 0.8
+	var x = vars.x / canvas.width;
+	var lo = nyquist, hi = 10;
+	if (x < 0.5) {
+		lo = nyquist * Math.pow(2, octaves * (x*2-1));
+	} else {
+		hi = nyquist * Math.pow(2, octaves * (x*2-2));
 	}
 
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].on) {
-			filters[i].lo.frequency.value = nyquist * Math.pow(2, nOctaves * (lo - 1));
-			filters[i].lo.Q.value = res * 30;
-
-			filters[i].hi.frequency.value = nyquist * Math.pow(2, nOctaves * (hi - 1));
-			filters[i].hi.Q.value = res * 30;
-
-			filters[i].x = x;
-			filters[i].y = y;
-		}
-		else if (filters[i].x != 0.5 || filters[i].y != 0.5) {
+			filters[i].lo.frequency.value = lo;
+			filters[i].lo.Q.value = q;
+			filters[i].hi.frequency.value = hi;
+			filters[i].hi.Q.value = q;
+		} else {
 			filters[i].lo.frequency.value = nyquist;
 			filters[i].lo.Q.value = 1;
 			filters[i].hi.frequency.value = 10;
 			filters[i].hi.Q.value = 1;
-			filters[i].x = 0.5;
-			filters[i].y = 0.5;
 		}
 	}
+
+	vars.filterX = vars.x;
+	vars.filterY = vars.y;
+	requestAnimationFrame(draw);
 }
 
 function mouseDown(event) {
@@ -327,10 +325,9 @@ function mouseDown(event) {
 	}
 
 	if (!vars.drag) {
-		doFilters(vars.x / canvas.width, vars.y / canvas.height);
+		doFilters();
 	}
 
-	requestAnimationFrame(draw);
 	event.preventDefault();
 }
 
@@ -350,8 +347,7 @@ function mouseMove(event) {
 	if (vars.click) {
 		if (!vars.drag) {
 			mouseXY(event);
-			doFilters(vars.x / canvas.width, vars.y / canvas.height);
-			requestAnimationFrame(draw);
+			doFilters();
 		}
 		event.preventDefault();
 	}
