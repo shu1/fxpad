@@ -1,7 +1,7 @@
 "use strict";
 (function() {
 var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
-var colors = ["red", "green", "blue", "orange", "magenta", "cyan", "black"];
+var colors = ["red", "green", "blue", "orange", "maroon", "teal", "purple", "olive"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
@@ -309,7 +309,7 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			var color = (tracks.length == 1) ? "gray" : colors[i];
+			var color = (tracks.length == 1) ? "dimgray" : colors[i];
 			visualizer(canvas, tracks[i].analyser, i, tracks.length, color);
 
 			if (tracks[i].on) {
@@ -323,14 +323,14 @@ function draw(time) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
-			context2d.fillStyle = (tracks.length == 1) ? "gray" : colors[i];
+			context2d.fillStyle = (tracks.length == 1) ? "dimgray" : colors[i];
 			context2d.fillText(tracks[i].text, tracks[i].x, vars.textY);
 		}
 	}
 
 	if (vars.text) {
 		context2d.font = vars.font;
-		context2d.fillStyle = "gray";
+		context2d.fillStyle = "dimgray";
 		context2d.fillText(vars.fpsText + vars.text, 2, 10);
 	}
 
