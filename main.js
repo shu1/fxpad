@@ -15,6 +15,11 @@ function initVars() {
 	vars.playing = false;
 	filters.length = 0;
 	texts.length = 0;
+
+	for (var i = stems.length-1; i >= 0; --i) {
+		loadAudio(vars.nLoad, stems[vars.nLoad].src, stems[vars.nLoad].text);
+		vars.nLoad++;
+	}
 }
 
 window.onload = function() {
@@ -25,19 +30,15 @@ window.onload = function() {
 		vars.useBuffer = true;
 	}
 
-	vars.x = vars.filterX = canvas.width/2;
-	vars.y = vars.filterY = canvas.height/2;
-	vars.textY = canvas.height-6;
-	vars.textHeight = 18;
 	vars.nyquist = audioContext.sampleRate / 2;
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
+	vars.textHeight = 18;
+	vars.textY = canvas.height-6;
+	vars.x = vars.filterX = canvas.width/2;
+	vars.y = vars.filterY = canvas.height/2;
 
 	initVars();
-
-	for (var i = stems.length-1; i >= 0; --i) {
-		loadAudio(vars.nLoad, stems[vars.nLoad].src, stems[vars.nLoad].text);
-		vars.nLoad++;
-	}
+	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
@@ -81,8 +82,6 @@ window.onload = function() {
 	if (span && !vars.useBuffer) {
 		span.style.display = "inline";	// show sc input ui
 	}
-
-	requestAnimationFrame(draw);
 
 	function loadFiles(event) {
 		pauseStop(true);
@@ -137,6 +136,7 @@ function loadAudio(index, src, text, play) {
 		audio.crossOrigin = "anonymous";
 		audio.oncanplay = function() {
 			var source = audioContext.createMediaElementSource(audio);
+			audio.onended = ended;
 			initFilter(index, source, text);
 			filters[index].audio = audio;
 			if (play) playStart();
@@ -150,6 +150,7 @@ function loadBuffer(index, data, text, play) {
 	var source = audioContext.createBufferSource();
 	audioContext.decodeAudioData(data, function(buffer) {
 		source.buffer = buffer;
+		source.onended = ended;
 		initFilter(index, source, text);
 		if (play) playStart();
 	});
@@ -171,7 +172,6 @@ function initFilter(index, source, text) {
 	hi.connect(audioContext.destination);
 
 	filters[index] = {source:source, text:text, lo:lo, hi:hi, on:true};
-	source.onended = ended;
 	vars.nLoaded++;
 	vars.nOn++;
 
@@ -253,7 +253,7 @@ function pauseStop(force) {
 
 function ended(event) {
 	for (var i = filters.length-1; i >= 0; --i) {
-		if (filters[i].source == event.target) {
+		if (filters[i].audio == event.target || filters[i].source == event.target) {
 			log("ended(" + filters[i].text + ")");
 			filters.splice(i, 1);
 			texts.splice(i, 1);
@@ -266,6 +266,10 @@ function ended(event) {
 	for (var i = filters.length-1; i >= 0; --i) {
 		setText(i);
 		if (filters[i].on) vars.nOn++;
+	}
+
+	if (!filters.length) {
+		initVars();
 	}
 
 	requestAnimationFrame(draw);
