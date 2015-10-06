@@ -169,11 +169,14 @@ function initFilter(index, source, text) {
 	hi.type = "highpass";
 	hi.frequency.value = 10;
 
+	var analyser = audioContext.createAnalyser();
+
 	source.connect(lo);
 	lo.connect(hi);
-	hi.connect(audioContext.destination);
+	hi.connect(analyser);
+	analyser.connect(audioContext.destination);
 
-	filters[index] = {source:source, text:text, lo:lo, hi:hi, on:true};
+	filters[index] = {source:source, text:text, lo:lo, hi:hi, analyser:analyser, on:true};
 	vars.nLoaded++;
 	vars.nOn++;
 
@@ -278,25 +281,36 @@ function ended(event) {
 }
 
 function draw(time) {
-	context2d.clearRect(0, 0, canvas.width, canvas.height);
+	var canvasWidth = canvas.width, canvasHeight = canvas.height;
+	context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
 	context2d.lineWidth = 1;
 	context2d.strokeStyle = "lightgray";
 	context2d.moveTo(0, 0);
-	context2d.lineTo(canvas.width, canvas.height);
-	context2d.moveTo(canvas.width, 0);
-	context2d.lineTo(0, canvas.height);
-	context2d.moveTo(0, canvas.height/2);
-	context2d.lineTo(canvas.width, canvas.height/2);
-	context2d.moveTo(canvas.width/2, 0);
-	context2d.lineTo(canvas.width/2, canvas.height);
+	context2d.lineTo(canvasWidth, canvasHeight);
+	context2d.moveTo(canvasWidth, 0);
+	context2d.lineTo(0, canvasHeight);
+	context2d.moveTo(0, canvasHeight/2);
+	context2d.lineTo(canvasWidth, canvasHeight/2);
+	context2d.moveTo(canvasWidth/2, 0);
+	context2d.lineTo(canvasWidth/2, canvasHeight);
 	context2d.stroke();
+
 	drawArc(0, Math.PI*2);
 
 	if (vars.playing) {
 		var n = 0, arc = Math.PI*2 / vars.nOn;
 		context2d.lineWidth = 3;
+
 		for (var i = filters.length-1; i >= 0; --i) {
+			var data = new Uint8Array(filters[i].analyser.frequencyBinCount);
+			var width = canvasWidth / data.length;
+			filters[i].analyser.getByteTimeDomainData(data);
+			context2d.fillStyle = (filters.length == 1) ? "gray" : colors[i];
+			for (var j = data.length-1; j >= 0; --j) {
+				context2d.fillRect(j * width, (1 - data[j]/256) * canvasHeight, 1, 1);
+			}
+
 			if (filters[i].on) {
 				context2d.strokeStyle = (filters.length == 1) ? "gray" : colors[i];
 				drawArc(arc * n, arc * (n+1));
@@ -318,6 +332,8 @@ function draw(time) {
 		context2d.fillStyle = "gray";
 		context2d.fillText(vars.text, 2, 12);
 	}
+
+	if (vars.playing) requestAnimationFrame(draw);
 
 	function drawArc(a1, a2) {
 		context2d.beginPath();
@@ -351,8 +367,6 @@ function doFilters(index) {
 			}
 		}
 	}
-
-	requestAnimationFrame(draw);
 
 	function setFilter(i, q, lo, hi) {
 		filters[i].lo.Q.value = q;
