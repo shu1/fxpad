@@ -1,6 +1,6 @@
 "use strict";
 (function() {
-var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};	// TODO rename filters to tracks
+var canvas, context2d, audioContext, vars={}, filters=[], texts=[], logs=[];	// TODO rename filters to tracks
 var colors = ["red", "green", "blue", "orange", "magenta", "cyan", "black"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
@@ -37,10 +37,10 @@ window.onload = function() {
 	vars.fpsText = "";
 	vars.nyquist = audioContext.sampleRate / 2;
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
-	vars.textHeight = 18;	// TODO make bigger on mobile
-	vars.textY = canvas.height-6;
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
+	vars.textHeight = 24;
+	vars.textY = canvas.height - vars.textHeight/4;
 
 	initVars(true);
 	draw(0);
@@ -85,7 +85,7 @@ window.onload = function() {
 
 	var span = document.getElementById("span");
 	if (span && !vars.useBuffer) {
-		span.style.display = "inline";	// show sc input ui
+		span.style.display = "inline";	// if not mobile then show sc input ui
 	}
 
 	function loadFiles(event) {
@@ -150,7 +150,7 @@ function loadAudio(index, src, text, play) {
 	}
 }
 
-function loadBuffer(index, data, text, play) {
+function loadBuffer(index, data, text, play) {	// TODO store buffer for replay
 	log("loadData(" + index + ", " + text + (play ? ", play)" : ")"));
 	var source = audioContext.createBufferSource();
 	audioContext.decodeAudioData(data, function(buffer) {
@@ -185,7 +185,7 @@ function initFilter(index, source, text) {
 
 	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
 	vars.width = canvas.width / n;
-	context2d.font = "bold " + vars.textHeight + "pt sans-serif";
+	context2d.font = "bold " + vars.textHeight + "px sans-serif";
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i]) {
 			while (context2d.measureText(filters[i].text).width > vars.width) {
@@ -198,7 +198,7 @@ function initFilter(index, source, text) {
 }
 
 function setText(index) {
-	var font = context2d.font = (filters[index].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
+	var font = context2d.font = (filters[index].on ? "bold " : "") + vars.textHeight + "px sans-serif";
 	var width = context2d.measureText(filters[index].text).width;
 	var x = (vars.width - width)/2 + vars.width * index;
 	texts[index] = {font:font, x:x, x2:x + width};
@@ -259,7 +259,7 @@ function pauseStop(force) {
 	}
 }
 
-function ended(event) {	// TODO if stems just play them again.
+function ended(event) {
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].audio == event.target || filters[i].source == event.target) {
 			log("ended(" + filters[i].text + ")");
@@ -333,7 +333,7 @@ function draw(time) {
 	if (vars.text) {
 		context2d.font = vars.font;
 		context2d.fillStyle = "gray";
-		context2d.fillText(vars.fpsText + vars.text, 2, 12);
+		context2d.fillText(vars.fpsText + vars.text, 2, 10);
 	}
 
 	requestAnimationFrame(draw);
@@ -444,7 +444,7 @@ function log(text) {
 		vars.text += logs[i] + " ";
 	}
 
-	context2d.font = vars.font = "10pt sans-serif";
+	context2d.font = vars.font = "10px sans-serif";
 	if (context2d.measureText(vars.text).width > canvas.width) {
 		logs.shift();
 	}
