@@ -1,6 +1,6 @@
 "use strict";
 (function() {
-var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};
+var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};	// TODO rename filters to tracks
 var colors = ["red", "green", "blue", "orange", "magenta", "cyan", "black"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
@@ -37,7 +37,7 @@ window.onload = function() {
 	vars.fpsText = "";
 	vars.nyquist = audioContext.sampleRate / 2;
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
-	vars.textHeight = 18;
+	vars.textHeight = 18;	// TODO make bigger on mobile
 	vars.textY = canvas.height-6;
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
@@ -359,7 +359,7 @@ function doFilters(index) {
 		var lo = vars.nyquist, hi = 10;
 
 		if (x < 0.5) {
-			lo = vars.nyquist * Math.pow(2, vars.octaves * (x*2-1));
+			lo = vars.nyquist * Math.pow(2, vars.octaves * (x*2-1));	// TODO exclude extremes
 		} else {
 			hi = vars.nyquist * Math.pow(2, vars.octaves * (x*2-2));
 		}
