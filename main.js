@@ -1,7 +1,7 @@
 "use strict";
 (function() {
 var canvas, context2d, audioContext, filters=[], texts=[], logs=[], vars={};
-var colors = ["red", "green", "blue", "orange"];
+var colors = ["red", "green", "blue", "orange", "magenta", "cyan", "black"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
@@ -52,8 +52,8 @@ window.onload = function() {
 	window.onmouseup = mouseUp;
 
 	window.onkeypress = function(event) {
-		var i = event.keyCode-49;
-		if (i >= 0 && i <= filters.length-1) {
+		var i = event.charCode-49;
+		if (i >= 0 && i < filters.length) {
 			toggleFilter(i);
 		}
 	}
@@ -114,7 +114,8 @@ function loadSC() {
 	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
 			pauseStop();
-			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, track.title, true);
+			loadAudio(vars.nLoad, track.stream_url + "?client_id=" + SC.options.client_id, track.title, true);
+			vars.nLoad++;
 		}
 	});
 }
@@ -150,7 +151,6 @@ function loadBuffer(index, data, text, play) {
 	audioContext.decodeAudioData(data, function(buffer) {
 		source.buffer = buffer;
 		initFilter(index, source, text);
-		filters[index].source = source;
 		if (play) playStart();
 	});
 }
@@ -170,16 +170,17 @@ function initFilter(index, source, text) {
 	lo.connect(hi);
 	hi.connect(audioContext.destination);
 
-	filters[index] = {on:true, text:text, lo:lo, hi:hi};
+	filters[index] = {source:source, text:text, lo:lo, hi:hi, on:true};
+	source.onended = ended;
 	vars.nLoaded++;
 	vars.nOn++;
 
 	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
-	vars.cellWidth = canvas.width / n;
+	vars.width = canvas.width / n;
 	context2d.font = "bold " + vars.textHeight + "pt sans-serif";
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i]) {
-			while (context2d.measureText(filters[i].text).width > vars.cellWidth) {
+			while (context2d.measureText(filters[i].text).width > vars.width) {
 				filters[i].text = filters[i].text.slice(0,-1);
 			}
 			setText(i);
@@ -191,7 +192,7 @@ function initFilter(index, source, text) {
 function setText(index) {
 	var font = context2d.font = (filters[index].on ? "bold " : "") + vars.textHeight + "pt sans-serif";
 	var width = context2d.measureText(filters[index].text).width;
-	var x = (vars.cellWidth - width)/2 + vars.cellWidth * index;
+	var x = (vars.width - width)/2 + vars.width * index;
 	texts[index] = {font:font, x:x, x2:x + width};
 }
 
@@ -200,11 +201,13 @@ function toggleFilter(index) {
 	filters[index].on = !filters[index].on;
 	setText(index);
 
-	if (filters[index].on) {
-		vars.nOn++;
-	} else {
-		vars.nOn--;
+	vars.nOn = 0;
+	for (var i = filters.length-1; i >= 0; --i) {
+		if (filters[i] && filters[i].on) {
+			vars.nOn++;
+		}
 	}
+
 	doFilters(index);
 }
 
@@ -213,14 +216,14 @@ function playStart() {
 		if (filters[i].audio) {
 			log("play(" + i + ")");
 			filters[i].audio.play();
-		} else {
-			if (filters[i].source.start) {
-				log("start(" + i + ")");
-				filters[i].source.start(0);
-			} else {
-				log("noteOn(" + i + ")");
-				filters[i].source.noteOn(0);
-			}
+		}
+		else if (filters[i].source.start) {
+			log("start(" + i + ")");
+			filters[i].source.start(0);
+		}
+		else {
+			log("noteOn(" + i + ")");
+			filters[i].source.noteOn(0);
 		}
 		vars.playing = true;
 	}
@@ -246,6 +249,26 @@ function pauseStop(force) {
 		}
 		initVars();
 	}
+}
+
+function ended(event) {
+	for (var i = filters.length-1; i >= 0; --i) {
+		if (filters[i].source == event.target) {
+			log("ended(" + filters[i].text + ")");
+			filters.splice(i, 1);
+			texts.splice(i, 1);
+			vars.nLoaded--;
+			vars.width = canvas.width / vars.nLoaded;
+		}
+	}
+
+	vars.nOn = 0
+	for (var i = filters.length-1; i >= 0; --i) {
+		setText(i);
+		if (filters[i].on) vars.nOn++;
+	}
+
+	requestAnimationFrame(draw);
 }
 
 function draw(time) {
