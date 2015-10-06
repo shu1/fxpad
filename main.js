@@ -8,19 +8,12 @@ var stems = [
 	{text:"BG Vocals", src:"BGVocals" + audioType}
 ]
 
-function initVars(load) {
+function initVars() {
 	vars.nOn = 0;
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
-	vars.playing = false;
+	vars.playing = false;	// TODO turn this into number of playing tracks
 	tracks.length = 0;
-
-	if (load) {
-		for (var i = stems.length-1; i >= 0; --i) {
-			loadAudio(vars.nLoad, stems[vars.nLoad].src, stems[vars.nLoad].text);
-			vars.nLoad++;
-		}
-	}
 }
 
 window.onload = function() {
@@ -41,7 +34,11 @@ window.onload = function() {
 	vars.textHeight = 24;
 	vars.textY = canvas.height - vars.textHeight/4;
 
-	initVars(true);
+	initVars();
+	for (var i = stems.length-1; i >= 0; --i) {
+		loadAudio(vars.nLoad, stems[vars.nLoad].text, stems[vars.nLoad].src);
+		vars.nLoad++;
+	}
 	draw(0);
 
 	if (window.PointerEvent) {
@@ -86,27 +83,27 @@ window.onload = function() {
 	if (span && !vars.useBuffer) {
 		span.style.display = "inline";	// if not mobile then show sc input ui
 	}
+}
 
-	function loadFiles(event) {
-		pauseStop(true);
-		var files = event.target.files || event.dataTransfer.files;
-		for (var i = files.length-1; i >= 0; --i) {
-			loadFile(files[i], files.length == 1);
-		}
-		event.preventDefault();
+function loadFiles(event) {
+	pauseStop(true);
+	var files = event.target.files || event.dataTransfer.files;
+	for (var i = files.length-1; i >= 0; --i) {
+		loadFile(files[i], files.length == 1);
+	}
+	event.preventDefault();
 
-		function loadFile(file, play) {
-			log("loadFile(" + file.name + ")");
-			if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
-				var reader = new FileReader();
-				reader.onload = function(event) {
-					loadBuffer(vars.nLoad, event.target.result, file.name, play);
-					vars.nLoad++;
-				}
-				reader.readAsArrayBuffer(file);
-			} else {
-				log("UNSUPPORTED FILE TYPE " + file.type);
+	function loadFile(file, play) {
+		log("loadFile(" + file.name + ")");
+		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
+			var reader = new FileReader();
+			reader.onload = function(event) {
+				loadBuffer(vars.nLoad, file.name, event.target.result, play);
+				vars.nLoad++;
 			}
+			reader.readAsArrayBuffer(file);
+		} else {
+			log("UNSUPPORTED FILE TYPE " + file.type);
 		}
 	}
 }
@@ -117,13 +114,13 @@ function loadSC() {
 	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
 			pauseStop();
-			loadAudio(vars.nLoad, track.stream_url + "?client_id=" + SC.options.client_id, track.title, true);
+			loadAudio(vars.nLoad, track.title, track.stream_url + "?client_id=" + SC.options.client_id, true);
 			vars.nLoad++;
 		}
 	});
 }
 
-function loadAudio(index, src, text, play) {
+function loadAudio(index, text, src, play) {
 	if (vars.useBuffer) {
 		log("loadBuffer(" + index + ", " + text + (play ? ", play)" : ")"));
 		var request = new XMLHttpRequest();
@@ -131,7 +128,7 @@ function loadAudio(index, src, text, play) {
     	request.withCredentials = true;
 		request.responseType = "arraybuffer";
 		request.onload = function() {
-			loadBuffer(index, request.response, text, play);
+			loadBuffer(index, text, request.response, play);
 		}
 		request.send();
 	} else {
@@ -139,9 +136,7 @@ function loadAudio(index, src, text, play) {
 		var audio = document.createElement("audio");
 		audio.crossOrigin = "anonymous";
 		audio.oncanplay = function() {
-			var source = audioContext.createMediaElementSource(audio);
-			audio.onended = ended;
-			initFilter(index, source, text);
+			initTracks(index, text);
 			tracks[index].audio = audio;
 			if (play) playStart();
 		}
@@ -149,19 +144,17 @@ function loadAudio(index, src, text, play) {
 	}
 }
 
-function loadBuffer(index, data, text, play) {	// TODO store buffer for replay
+function loadBuffer(index, text, data, play) {
 	log("loadData(" + index + ", " + text + (play ? ", play)" : ")"));
-	var source = audioContext.createBufferSource();
 	audioContext.decodeAudioData(data, function(buffer) {
-		source.buffer = buffer;
-		source.onended = ended;
-		initFilter(index, source, text);
+		initTracks(index, text);
+		tracks[index].buffer = buffer;
 		if (play) playStart();
 	});
 }
 
-function initFilter(index, source, text) {
-	log("initFilters(" + index + ")");
+function initTracks(index, text) {
+	log("initTracks(" + index + ")");
 
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
@@ -173,12 +166,11 @@ function initFilter(index, source, text) {
 
 	var analyser = audioContext.createAnalyser();
 
-	source.connect(lo);
 	lo.connect(hi);
 	hi.connect(analyser);
 	analyser.connect(audioContext.destination);
 
-	tracks[index] = {source:source, text:text, lo:lo, hi:hi, analyser:analyser, on:true};
+	tracks[index] = {text:text, lo:lo, hi:hi, analyser:analyser, on:true};
 	vars.nLoaded++;
 	vars.nOn++;
 
@@ -221,16 +213,26 @@ function toggleFilter(index) {
 function playStart() {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio) {
+			tracks[i].source = audioContext.createMediaElementSource(tracks[i].audio);
+			tracks[i].source.connect(tracks[i].lo);
+			tracks[i].audio.onended = ended;
+
 			log("play(" + i + ")");
 			tracks[i].audio.play();
-		}
-		else if (tracks[i].source.start) {
-			log("start(" + i + ")");
-			tracks[i].source.start(0);
-		}
-		else {
-			log("noteOn(" + i + ")");
-			tracks[i].source.noteOn(0);
+		} else {
+			tracks[i].source = audioContext.createBufferSource();
+			tracks[i].source.buffer = tracks[i].buffer;
+			tracks[i].source.connect(tracks[i].lo);
+			tracks[i].source.onended = ended;
+
+			if (tracks[i].source.start) {
+				log("start(" + i + ")");
+				tracks[i].source.start(0);
+			}
+			else {
+				log("noteOn(" + i + ")");
+				tracks[i].source.noteOn(0);
+			}
 		}
 		vars.playing = true;
 	}
@@ -275,7 +277,7 @@ function ended(event) {
 	}
 
 	if (!tracks.length) {
-		initVars(true);
+		initVars();
 	}
 }
 
