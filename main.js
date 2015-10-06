@@ -259,7 +259,7 @@ function pauseStop(force) {
 	}
 }
 
-function ended(event) {
+function ended(event) {	// TODO if stems just play them again.
 	for (var i = filters.length-1; i >= 0; --i) {
 		if (filters[i].audio == event.target || filters[i].source == event.target) {
 			log("ended(" + filters[i].text + ")");
@@ -311,16 +311,11 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = filters.length-1; i >= 0; --i) {
-			var data = new Uint8Array(filters[i].analyser.frequencyBinCount);
-			var width = canvasWidth / data.length;
-			filters[i].analyser.getByteTimeDomainData(data);
-			context2d.fillStyle = (filters.length == 1) ? "gray" : colors[i];
-			for (var j = data.length-1; j >= 0; --j) {
-				context2d.fillRect(j * width, (1 - data[j]/256) * canvasHeight, 1, 1);
-			}
+			var color = (filters.length == 1) ? "gray" : colors[i];
+			visualizer(canvas, filters[i].analyser, i, filters.length, color);
 
 			if (filters[i].on) {
-				context2d.strokeStyle = (filters.length == 1) ? "gray" : colors[i];
+				context2d.strokeStyle = color;
 				drawArc(arc * n, arc * (n+1));
 				++n;
 			}
