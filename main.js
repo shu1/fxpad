@@ -32,6 +32,9 @@ window.onload = function() {
 		vars.useBuffer = true;
 	}
 
+	vars.fpsTime = 0;
+	vars.fpsCount = 0;
+	vars.fpsText = "";
 	vars.nyquist = audioContext.sampleRate / 2;
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
 	vars.textHeight = 18;
@@ -40,7 +43,7 @@ window.onload = function() {
 	vars.y = vars.filterY = canvas.height/2;
 
 	initVars(true);
-	requestAnimationFrame(draw);
+	draw(0);
 
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
@@ -276,11 +279,16 @@ function ended(event) {
 	if (!filters.length) {
 		initVars(true);
 	}
-
-	requestAnimationFrame(draw);
 }
 
 function draw(time) {
+	vars.fpsCount++;
+	if (time - vars.fpsTime > 984) {
+		vars.fpsText = vars.fpsCount + "fps ";
+		vars.fpsTime = time;
+		vars.fpsCount = 0;
+	}
+
 	var canvasWidth = canvas.width, canvasHeight = canvas.height;
 	context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -330,10 +338,10 @@ function draw(time) {
 	if (vars.text) {
 		context2d.font = vars.font;
 		context2d.fillStyle = "gray";
-		context2d.fillText(vars.text, 2, 12);
+		context2d.fillText(vars.fpsText + vars.text, 2, 12);
 	}
 
-	if (vars.playing) requestAnimationFrame(draw);
+	requestAnimationFrame(draw);
 
 	function drawArc(a1, a2) {
 		context2d.beginPath();
@@ -430,7 +438,6 @@ function mouseUp(event) {
 
 	vars.click = false;
 	vars.drag = false;
-	requestAnimationFrame(draw);
 }
 
 function log(text) {
@@ -446,8 +453,6 @@ function log(text) {
 	if (context2d.measureText(vars.text).width > canvas.width) {
 		logs.shift();
 	}
-
-	requestAnimationFrame(draw);
 }
 })();
 (function() {
