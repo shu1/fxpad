@@ -359,9 +359,9 @@ function doFilters(index) {
 		var lo = vars.nyquist, hi = 10;
 
 		if (x < 0.5) {
-			lo = vars.nyquist * Math.pow(2, vars.octaves * (x*2-1));	// TODO exclude extremes
+			lo = vars.nyquist * Math.pow(2, vars.octaves * (x*1.8-0.9));	// 0 ~ 0.5 -> 0.1 ~ 1 -> -0.9 ~ 0
 		} else {
-			hi = vars.nyquist * Math.pow(2, vars.octaves * (x*2-2));
+			hi = vars.nyquist * Math.pow(2, vars.octaves * (x*1.8-1.9));	// 0.5 ~ 1 -> 0 ~ 0.9 -> -1 ~ -0.1
 		}
 
 		for (var i = filters.length-1; i >= 0; --i) {
