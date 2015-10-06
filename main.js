@@ -1,6 +1,6 @@
 "use strict";
 (function() {
-var canvas, context2d, audioContext, vars={}, filters=[], texts=[], logs=[];	// TODO rename filters to tracks
+var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
 var colors = ["red", "green", "blue", "orange", "magenta", "cyan", "black"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
@@ -13,8 +13,7 @@ function initVars(load) {
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
 	vars.playing = false;
-	filters.length = 0;
-	texts.length = 0;
+	tracks.length = 0;
 
 	if (load) {
 		for (var i = stems.length-1; i >= 0; --i) {
@@ -59,7 +58,7 @@ window.onload = function() {
 
 	window.onkeypress = function(event) {
 		var i = event.charCode-49;
-		if (i >= 0 && i < filters.length) {
+		if (i >= 0 && i < tracks.length) {
 			toggleFilter(i);
 		}
 	}
@@ -143,7 +142,7 @@ function loadAudio(index, src, text, play) {
 			var source = audioContext.createMediaElementSource(audio);
 			audio.onended = ended;
 			initFilter(index, source, text);
-			filters[index].audio = audio;
+			tracks[index].audio = audio;
 			if (play) playStart();
 		}
 		audio.src = src;
@@ -179,17 +178,17 @@ function initFilter(index, source, text) {
 	hi.connect(analyser);
 	analyser.connect(audioContext.destination);
 
-	filters[index] = {source:source, text:text, lo:lo, hi:hi, analyser:analyser, on:true};
+	tracks[index] = {source:source, text:text, lo:lo, hi:hi, analyser:analyser, on:true};
 	vars.nLoaded++;
 	vars.nOn++;
 
 	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
 	vars.width = canvas.width / n;
 	context2d.font = "bold " + vars.textHeight + "px sans-serif";
-	for (var i = filters.length-1; i >= 0; --i) {
-		if (filters[i]) {
-			while (context2d.measureText(filters[i].text).width > vars.width) {
-				filters[i].text = filters[i].text.slice(0,-1);
+	for (var i = tracks.length-1; i >= 0; --i) {
+		if (tracks[i]) {
+			while (context2d.measureText(tracks[i].text).width > vars.width) {
+				tracks[i].text = tracks[i].text.slice(0,-1);
 			}
 			setText(i);
 		}
@@ -198,20 +197,20 @@ function initFilter(index, source, text) {
 }
 
 function setText(index) {
-	var font = context2d.font = (filters[index].on ? "bold " : "") + vars.textHeight + "px sans-serif";
-	var width = context2d.measureText(filters[index].text).width;
-	var x = (vars.width - width)/2 + vars.width * index;
-	texts[index] = {font:font, x:x, x2:x + width};
+	tracks[index].font = context2d.font = (tracks[index].on ? "bold " : "") + vars.textHeight + "px sans-serif";
+	var width = context2d.measureText(tracks[index].text).width;
+	tracks[index].x = (vars.width - width)/2 + vars.width * index;
+	tracks[index].x2 = tracks[index].x + width;
 }
 
 function toggleFilter(index) {
-	log("filter(" + index + (filters[index].on ? ", off)" : ", on)"));
-	filters[index].on = !filters[index].on;
+	log("filter(" + index + (tracks[index].on ? ", off)" : ", on)"));
+	tracks[index].on = !tracks[index].on;
 	setText(index);
 
 	vars.nOn = 0;
-	for (var i = filters.length-1; i >= 0; --i) {
-		if (filters[i] && filters[i].on) {
+	for (var i = tracks.length-1; i >= 0; --i) {
+		if (tracks[i] && tracks[i].on) {
 			vars.nOn++;
 		}
 	}
@@ -220,18 +219,18 @@ function toggleFilter(index) {
 }
 
 function playStart() {
-	for (var i = filters.length-1; i >= 0; --i) {
-		if (filters[i].audio) {
+	for (var i = tracks.length-1; i >= 0; --i) {
+		if (tracks[i].audio) {
 			log("play(" + i + ")");
-			filters[i].audio.play();
+			tracks[i].audio.play();
 		}
-		else if (filters[i].source.start) {
+		else if (tracks[i].source.start) {
 			log("start(" + i + ")");
-			filters[i].source.start(0);
+			tracks[i].source.start(0);
 		}
 		else {
 			log("noteOn(" + i + ")");
-			filters[i].source.noteOn(0);
+			tracks[i].source.noteOn(0);
 		}
 		vars.playing = true;
 	}
@@ -240,18 +239,18 @@ function playStart() {
 function pauseStop(force) {
 	if (force || vars.nLoad > 0) {
 		if (vars.playing) {
-			for (var i = filters.length-1; i >= 0; --i) {
-				if (filters[i].audio) {
+			for (var i = tracks.length-1; i >= 0; --i) {
+				if (tracks[i].audio) {
 					log("pause(" + i + ")");
-					filters[i].audio.pause();
+					tracks[i].audio.pause();
 				}
-				else if (filters[i].source.stop) {
+				else if (tracks[i].source.stop) {
 					log("stop(" + i + ")");
-					filters[i].source.stop(0);
+					tracks[i].source.stop(0);
 				}
 				else {
 					log("noteOff(" + i + ")");
-					filters[i].source.noteOff(0);
+					tracks[i].source.noteOff(0);
 				}
 			}
 		}
@@ -260,23 +259,22 @@ function pauseStop(force) {
 }
 
 function ended(event) {
-	for (var i = filters.length-1; i >= 0; --i) {
-		if (filters[i].audio == event.target || filters[i].source == event.target) {
-			log("ended(" + filters[i].text + ")");
-			filters.splice(i, 1);
-			texts.splice(i, 1);
+	for (var i = tracks.length-1; i >= 0; --i) {
+		if (tracks[i].audio == event.target || tracks[i].source == event.target) {
+			log("ended(" + tracks[i].text + ")");
+			tracks.splice(i, 1);
 			vars.nLoaded--;
 			vars.width = canvas.width / vars.nLoaded;
 		}
 	}
 
 	vars.nOn = 0
-	for (var i = filters.length-1; i >= 0; --i) {
+	for (var i = tracks.length-1; i >= 0; --i) {
 		setText(i);
-		if (filters[i].on) vars.nOn++;
+		if (tracks[i].on) vars.nOn++;
 	}
 
-	if (!filters.length) {
+	if (!tracks.length) {
 		initVars(true);
 	}
 }
@@ -310,11 +308,11 @@ function draw(time) {
 		var n = 0, arc = Math.PI*2 / vars.nOn;
 		context2d.lineWidth = 3;
 
-		for (var i = filters.length-1; i >= 0; --i) {
-			var color = (filters.length == 1) ? "gray" : colors[i];
-			visualizer(canvas, filters[i].analyser, i, filters.length, color);
+		for (var i = tracks.length-1; i >= 0; --i) {
+			var color = (tracks.length == 1) ? "gray" : colors[i];
+			visualizer(canvas, tracks[i].analyser, i, tracks.length, color);
 
-			if (filters[i].on) {
+			if (tracks[i].on) {
 				context2d.strokeStyle = color;
 				drawArc(arc * n, arc * (n+1));
 				++n;
@@ -322,11 +320,11 @@ function draw(time) {
 		}
 	}
 
-	for (var i = texts.length-1; i >= 0; --i) {
-		if (texts[i]) {
-			context2d.font = texts[i].font;
-			context2d.fillStyle = (texts.length == 1) ? "gray" : colors[i];
-			context2d.fillText(filters[i].text, texts[i].x, vars.textY);
+	for (var i = tracks.length-1; i >= 0; --i) {
+		if (tracks[i]) {
+			context2d.font = tracks[i].font;
+			context2d.fillStyle = (tracks.length == 1) ? "gray" : colors[i];
+			context2d.fillText(tracks[i].text, tracks[i].x, vars.textY);
 		}
 	}
 
@@ -351,7 +349,7 @@ function doFilters(index) {
 		vars.filterY = vars.y;
 	}
 
-	if (filters[index] && !filters[index].on) {
+	if (tracks[index] && !tracks[index].on) {
 		setFilter(index, 1, vars.nyquist, 10);
 	} else {
 		var q = Math.abs(vars.filterY / canvas.height - 0.5) * 60;
@@ -364,18 +362,18 @@ function doFilters(index) {
 			hi = vars.nyquist * Math.pow(2, vars.octaves * (x*1.8-1.9));	// 0.5 ~ 1 -> 0 ~ 0.9 -> -1 ~ -0.1
 		}
 
-		for (var i = filters.length-1; i >= 0; --i) {
-			if (filters[i] && filters[i].on) {
+		for (var i = tracks.length-1; i >= 0; --i) {
+			if (tracks[i] && tracks[i].on) {
 				setFilter(i, q, lo, hi);
 			}
 		}
 	}
 
 	function setFilter(i, q, lo, hi) {
-		filters[i].lo.Q.value = q;
-		filters[i].lo.frequency.value = lo;
-		filters[i].hi.Q.value = q;
-		filters[i].hi.frequency.value = hi;
+		tracks[i].lo.Q.value = q;
+		tracks[i].lo.frequency.value = lo;
+		tracks[i].hi.Q.value = q;
+		tracks[i].hi.frequency.value = hi;
 	}
 }
 
@@ -384,8 +382,8 @@ function mouseDown(event) {
 	mouseXY(event);
 
 	if (vars.y > vars.textY - vars.textHeight) {
-		for (var i = texts.length-1; i >= 0; --i) {
-			if (vars.x > texts[i].x && vars.x < texts[i].x2) {
+		for (var i = tracks.length-1; i >= 0; --i) {
+			if (vars.x > tracks[i].x && vars.x < tracks[i].x2) {
 				vars.drag = true;
 				toggleFilter(i);
 			}
