@@ -327,11 +327,16 @@ function draw(time) {
 }
 
 function doFilters(index) {
+	if (index == undefined) {
+		vars.filterX = vars.x;
+		vars.filterY = vars.y;
+	}
+
 	if (filters[index] && !filters[index].on) {
 		setFilter(index, 1, vars.nyquist, 10);
 	} else {
-		var q = Math.abs(vars.y / canvas.height - 0.5) * 60;
-		var x = vars.x / canvas.width;
+		var q = Math.abs(vars.filterY / canvas.height - 0.5) * 60;
+		var x = vars.filterX / canvas.width;
 		var lo = vars.nyquist, hi = 10;
 
 		if (x < 0.5) {
@@ -344,11 +349,6 @@ function doFilters(index) {
 			if (filters[i] && filters[i].on) {
 				setFilter(i, q, lo, hi);
 			}
-		}
-
-		if (index == undefined) {
-			vars.filterX = vars.x;
-			vars.filterY = vars.y;
 		}
 	}
 
