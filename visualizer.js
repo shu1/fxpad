@@ -1,6 +1,6 @@
 "use strict";
 
-function visualizer(canvas, analyser, i, nTracks, color) {
+function visualizer(canvas, analyser, index, nTracks, color) {
 	var context2d = canvas.getContext("2d");
 	var canvasHeight = canvas.height;
 
@@ -10,10 +10,10 @@ function visualizer(canvas, analyser, i, nTracks, color) {
 
 	var length = Math.ceil(data.length * 0.73);	// frequencies are mostly flat towards highs
 	var width = canvas.width / length;
-	var offset = width / nTracks * i;
+	var offset = width / nTracks * index;
 
 	context2d.fillStyle = color;
-	for (var j = length-1; j >= 0; --j) {
-		context2d.fillRect(j * width + offset, (1 - data[j]/256) * canvasHeight, width, 1);
+	for (var i = length-1; i >= 0; --i) {
+		context2d.fillRect(i * width + offset, (1 - data[i]/256) * canvasHeight, width, 1);
 	}
 }
