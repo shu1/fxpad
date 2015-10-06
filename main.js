@@ -109,8 +109,9 @@ window.onload = function() {
 }
 
 function loadSC() {
-	log("loadSC()");
-	SC.get('/resolve', {url:document.getElementById("text").value}, function(track) {
+	var url = document.getElementById("text").value;
+	log("loadSoundcloud(" + url + ")");
+	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
 			pauseStop();
 			loadAudio(vars.nLoaded, track.stream_url + "?client_id=" + SC.options.client_id, track.title, true);
