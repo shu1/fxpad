@@ -8,7 +8,7 @@ var stems = [
 	{text:"BG Vocals", src:"BGVocals" + audioType}
 ]
 
-function initVars() {
+function initVars(load) {
 	vars.nOn = 0;
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
@@ -16,9 +16,11 @@ function initVars() {
 	filters.length = 0;
 	texts.length = 0;
 
-	for (var i = stems.length-1; i >= 0; --i) {
-		loadAudio(vars.nLoad, stems[vars.nLoad].src, stems[vars.nLoad].text);
-		vars.nLoad++;
+	if (load) {
+		for (var i = stems.length-1; i >= 0; --i) {
+			loadAudio(vars.nLoad, stems[vars.nLoad].src, stems[vars.nLoad].text);
+			vars.nLoad++;
+		}
 	}
 }
 
@@ -37,7 +39,7 @@ window.onload = function() {
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
 
-	initVars();
+	initVars(true);
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -269,7 +271,7 @@ function ended(event) {
 	}
 
 	if (!filters.length) {
-		initVars();
+		initVars(true);
 	}
 
 	requestAnimationFrame(draw);
