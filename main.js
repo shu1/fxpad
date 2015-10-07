@@ -304,6 +304,7 @@ function draw(time) {
 		vars.fpsCount = 0;
 	}
 
+	visualizer(time);
 	context2d.clearRect(0, 0, canvas.width, canvas.height);
 
 	context2d.lineWidth = 1;
@@ -327,14 +328,6 @@ function draw(time) {
 		for (var i = tracks.length-1; i >= 0; --i) {
 			var track = tracks[i];
 			var color = (tracks.length == 1) ? "gray" : colors[i];
-
-			if (i == 0) {
-				var progress = track.audio ?
-					track.audio.currentTime / track.audio.duration :
-					(audioContext.currentTime - track.time) / track.buffer.duration;
-
-				visualizer(time);
-			}
 
 			if (track.on) {
 				context2d.strokeStyle = color;
