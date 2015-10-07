@@ -295,19 +295,18 @@ function draw(time) {
 		vars.fpsCount = 0;
 	}
 
-	var canvasWidth = canvas.width, canvasHeight = canvas.height;	// TODO remove
-	context2d.clearRect(0, 0, canvasWidth, canvasHeight);
+	context2d.clearRect(0, 0, canvas.width, canvas.height);
 
 	context2d.lineWidth = 1;
 	context2d.strokeStyle = "lightgray";
 	context2d.moveTo(0, 0);
-	context2d.lineTo(canvasWidth, canvasHeight);
-	context2d.moveTo(canvasWidth, 0);
-	context2d.lineTo(0, canvasHeight);
-	context2d.moveTo(0, canvasHeight/2);
-	context2d.lineTo(canvasWidth, canvasHeight/2);
-	context2d.moveTo(canvasWidth/2, 0);
-	context2d.lineTo(canvasWidth/2, canvasHeight);
+	context2d.lineTo(canvas.width, canvas.height);
+	context2d.moveTo(canvas.width, 0);
+	context2d.lineTo(0, canvas.height);
+	context2d.moveTo(0, canvas.height/2);
+	context2d.lineTo(canvas.width, canvas.height/2);
+	context2d.moveTo(canvas.width/2, 0);
+	context2d.lineTo(canvas.width/2, canvas.height);
 	context2d.stroke();
 
 	drawArc(0, Math.PI*2);
@@ -317,7 +316,7 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			var color = (tracks.length == 1) ? "dimgray" : colors[i];	// TODO color gray if not playing
+			var color = (tracks.length == 1) ? "dimgray" : colors[i];
 			visualizer(canvas, tracks[i].analyser, i, tracks.length, color);
 
 			if (tracks[i].on) {
@@ -331,7 +330,7 @@ function draw(time) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
-			context2d.fillStyle = (tracks.length == 1) ? "dimgray" : colors[i];
+			context2d.fillStyle = (vars.nPlaying < 1 || tracks.length == 1) ? "dimgray" : colors[i];
 			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
 		}
 	}
