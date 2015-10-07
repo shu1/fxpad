@@ -2,7 +2,7 @@
 "use strict";
 (function() {
 var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
-var colors = ["red", "green", "blue", "orange", "maroon", "teal", "purple", "olive"];
+var colors = ["red", "green", "blue", "orange", "maroon", "teal", "navy", "olive", "purple", "gray"];
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
@@ -56,7 +56,7 @@ window.onload = function() {
 	window.onmouseup = mouseUp;
 
 	window.onkeypress = function(event) {
-		var i = event.charCode-49;
+		var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
 		if (i >= 0 && i < tracks.length) {
 			toggleEffect(i);
 		}
@@ -90,7 +90,13 @@ window.onload = function() {
 function loadFiles(event) {
 	pauseStop(true);
 	var files = event.target.files || event.dataTransfer.files;
-	for (var i = files.length-1; i >= 0; --i) {
+	var length = files.length;
+	if (length > colors.length) {
+		length = colors.length;
+		log("MAX " + length + " FILES");
+	}
+
+	for (var i = length-1; i >= 0; --i) {
 		loadFile(files[i], files.length == 1);
 	}
 	event.preventDefault();
@@ -128,7 +134,7 @@ function loadSC() {
 }
 
 function loadAudio(index, text, src, play) {
-	log("loadAudio(" + index + ")");
+	log("loadAudio(" + (index+1) + ")");
 	if (vars.useBuffer) {
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
@@ -156,7 +162,7 @@ function loadAudio(index, text, src, play) {
 }
 
 function loadBuffer(index, text, data, play) {
-	log("loadBuffer(" + index + ")");
+	log("loadBuffer(" + (index+1) + ")");
 	audioContext.decodeAudioData(data, function(buffer) {
 		initTrack(index, text);
 		tracks[index].buffer = buffer;
@@ -165,7 +171,7 @@ function loadBuffer(index, text, data, play) {
 }
 
 function initTrack(index, text) {
-	log("initEffects(" + index + ")");
+	log("initEffects(" + (index+1) + ")");
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
 	lo.frequency.value = audioContext.sampleRate/2;
@@ -206,7 +212,7 @@ function setText(index) {
 }
 
 function toggleEffect(index) {
-	log("effects(" + index + (tracks[index].on ? ", off)" : ", on)"));
+	log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
 	tracks[index].on = !tracks[index].on;
 	setText(index);
 
@@ -223,7 +229,7 @@ function toggleEffect(index) {
 function playStart() {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio) {
-			log("play(" + i + ")");
+			log("play(" + (i+1) + ")");
 			tracks[i].audio.play();
 		} else {
 			tracks[i].source = audioContext.createBufferSource();
@@ -233,11 +239,11 @@ function playStart() {
 			tracks[i].time = audioContext.currentTime;
 
 			if (tracks[i].source.start) {
-				log("start(" + i + ")");
+				log("start(" + (i+1) + ")");
 				tracks[i].source.start(0);
 			}
 			else {
-				log("noteOn(" + i + ")");
+				log("noteOn(" + (i+1) + ")");
 				tracks[i].source.noteOn(0);
 			}
 		}
@@ -250,15 +256,15 @@ function pauseStop(force) {
 		if (vars.nPlaying > 0) {
 			for (var i = tracks.length-1; i >= 0; --i) {
 				if (tracks[i].audio) {
-					log("pause(" + i + ")");
+					log("pause(" + (i+1) + ")");
 					tracks[i].audio.pause();
 				}
 				else if (tracks[i].source.stop) {
-					log("stop(" + i + ")");
+					log("stop(" + (i+1) + ")");
 					tracks[i].source.stop(0);
 				}
 				else {
-					log("noteOff(" + i + ")");
+					log("noteOff(" + (i+1) + ")");
 					tracks[i].source.noteOff(0);
 				}
 			}
@@ -270,7 +276,7 @@ function pauseStop(force) {
 function ended(event) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio == event.target || tracks[i].source == event.target) {
-			log("ended(" + i + ")");
+			log("ended(" + (i+1) + ")");
 			vars.nPlaying--;
 			tracks[i].on = false;
 			setText(i);
