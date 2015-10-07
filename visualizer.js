@@ -18,7 +18,7 @@ function visualizer(canvas, analyser, nTracks, index, color, progress) {	// TODO
 		draw(i, 1);
 	}
 
-	context2d.fillStyle = "black";
+	context2d.fillStyle = "dimgray";
 	draw(Math.floor(length * progress), 2);
 
 	function draw(i, h) {
