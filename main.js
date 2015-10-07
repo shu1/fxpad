@@ -141,13 +141,15 @@ function loadAudio(index, text, src, play) {
 	} else {
 		var audio = document.createElement("audio");
 		audio.crossOrigin = "anonymous";
-		audio.onloadeddata = function() {
-			initTrack(index, text);
-			tracks[index].source = audioContext.createMediaElementSource(audio);
-			tracks[index].source.connect(tracks[index].lo);
-			tracks[index].audio = audio;
-			tracks[index].audio.onended = ended;
-			if (play) playStart();
+		audio.oncanplaythrough = function() {
+			if (!tracks[index]) {	// workaround for Chrome bug where this gets called on replays
+				initTrack(index, text);
+				tracks[index].source = audioContext.createMediaElementSource(audio);
+				tracks[index].source.connect(tracks[index].lo);
+				tracks[index].audio = audio;
+				tracks[index].audio.onended = ended;
+				if (play) playStart();
+			}
 		}
 		audio.src = src;
 	}
