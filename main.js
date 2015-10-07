@@ -445,13 +445,15 @@ function log(text) {
 
 	logs.push(text);
 	vars.text = "";
-	for (var i = logs.length-1; i >= 0; --i) {
+	for (var i = logs.length-1; i >= 1; --i) {
 		vars.text += logs[i] + " ";
 	}
 
 	context2d.font = vars.font = "10px sans-serif";
 	if (context2d.measureText(vars.text).width > canvas.width) {
 		logs.shift();
+	} else {
+		vars.text += logs[0];
 	}
 }
 })();
