@@ -1,3 +1,4 @@
+// DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 (function() {
 var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
@@ -12,7 +13,7 @@ function initVars() {
 	vars.nOn = 0;
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
-	vars.playing = false;	// TODO turn this into number of playing tracks
+	vars.nPlaying = 0;
 	tracks.length = 0;
 }
 
@@ -56,7 +57,7 @@ window.onload = function() {
 	window.onkeypress = function(event) {
 		var i = event.charCode-49;
 		if (i >= 0 && i < tracks.length) {
-			toggleFilter(i);
+			toggleEffect(i);
 		}
 	}
 
@@ -126,8 +127,8 @@ function loadSC() {
 }
 
 function loadAudio(index, text, src, play) {
+	log("loadAudio(" + index + ")");
 	if (vars.useBuffer) {
-		log("loadBuffer(" + index + ", " + text + (play ? ", play)" : ")"));
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
     	request.withCredentials = true;
@@ -137,12 +138,14 @@ function loadAudio(index, text, src, play) {
 		}
 		request.send();
 	} else {
-		log("loadAudio(" + index + ", " + text + (play ? ", play)" : ")"));
 		var audio = document.createElement("audio");
 		audio.crossOrigin = "anonymous";
-		audio.oncanplay = function() {
-			initTracks(index, text);
+		audio.onloadeddata = function() {
+			initTrack(index, text);
+			tracks[index].source = audioContext.createMediaElementSource(audio);
+			tracks[index].source.connect(tracks[index].lo);
 			tracks[index].audio = audio;
+			tracks[index].audio.onended = ended;
 			if (play) playStart();
 		}
 		audio.src = src;
@@ -150,17 +153,16 @@ function loadAudio(index, text, src, play) {
 }
 
 function loadBuffer(index, text, data, play) {
-	log("loadData(" + index + ", " + text + (play ? ", play)" : ")"));
+	log("loadBuffer(" + index + ")");
 	audioContext.decodeAudioData(data, function(buffer) {
-		initTracks(index, text);
+		initTrack(index, text);
 		tracks[index].buffer = buffer;
 		if (play) playStart();
 	});
 }
 
-function initTracks(index, text) {
-	log("initTracks(" + index + ")");
-
+function initTrack(index, text) {
+	log("initEffects(" + index + ")");
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
 	lo.frequency.value = audioContext.sampleRate/2;
@@ -200,8 +202,8 @@ function setText(index) {
 	tracks[index].x2 = tracks[index].x + width;
 }
 
-function toggleFilter(index) {
-	log("filter(" + index + (tracks[index].on ? ", off)" : ", on)"));
+function toggleEffect(index) {
+	log("effects(" + index + (tracks[index].on ? ", off)" : ", on)"));
 	tracks[index].on = !tracks[index].on;
 	setText(index);
 
@@ -218,10 +220,6 @@ function toggleFilter(index) {
 function playStart() {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio) {
-			tracks[i].source = audioContext.createMediaElementSource(tracks[i].audio);
-			tracks[i].source.connect(tracks[i].lo);
-			tracks[i].audio.onended = ended;
-
 			log("play(" + i + ")");
 			tracks[i].audio.play();
 		} else {
@@ -239,13 +237,13 @@ function playStart() {
 				tracks[i].source.noteOn(0);
 			}
 		}
-		vars.playing = true;
+		vars.nPlaying++;
 	}
 }
 
 function pauseStop(force) {
 	if (force || vars.nLoad > 0) {
-		if (vars.playing) {
+		if (vars.nPlaying > 0) {
 			for (var i = tracks.length-1; i >= 0; --i) {
 				if (tracks[i].audio) {
 					log("pause(" + i + ")");
@@ -268,21 +266,21 @@ function pauseStop(force) {
 function ended(event) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio == event.target || tracks[i].source == event.target) {
-			log("ended(" + tracks[i].text + ")");
-			tracks.splice(i, 1);
-			vars.nLoaded--;
-			vars.width = canvas.width / vars.nLoaded;
+			log("ended(" + i + ")");
+			vars.nPlaying--;
+			tracks[i].on = false;
+			setText(i);
 		}
 	}
 
-	vars.nOn = 0
+	vars.nOn = 0;
 	for (var i = tracks.length-1; i >= 0; --i) {
-		setText(i);
-		if (tracks[i].on) vars.nOn++;
-	}
+		if (vars.nPlaying < 1) {
+			tracks[i].on = true;
+			setText(i);
+		}
 
-	if (!tracks.length) {
-		initVars();
+		if (tracks[i].on) vars.nOn++;
 	}
 }
 
@@ -294,7 +292,7 @@ function draw(time) {
 		vars.fpsCount = 0;
 	}
 
-	var canvasWidth = canvas.width, canvasHeight = canvas.height;
+	var canvasWidth = canvas.width, canvasHeight = canvas.height;	// TODO remove
 	context2d.clearRect(0, 0, canvasWidth, canvasHeight);
 
 	context2d.lineWidth = 1;
@@ -311,7 +309,7 @@ function draw(time) {
 
 	drawArc(0, Math.PI*2);
 
-	if (vars.playing) {
+	if (vars.nPlaying > 0) {
 		var n = 0, arc = Math.PI*2 / vars.nOn;
 		context2d.lineWidth = 3;
 
@@ -392,7 +390,7 @@ function mouseDown(event) {
 		for (var i = tracks.length-1; i >= 0; --i) {
 			if (vars.x > tracks[i].x && vars.x < tracks[i].x2) {
 				vars.drag = true;
-				toggleFilter(i);
+				toggleEffect(i);
 			}
 		}
 	}
@@ -427,7 +425,7 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (!vars.playing && event.target == canvas) {
+	if (vars.nPlaying < 1 && event.target == canvas) {
 		if (vars.nLoaded >= vars.nLoad) {
 			playStart();
 		}
