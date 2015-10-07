@@ -1,16 +1,20 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
-var gl, programInfo, bufferInfo;
+var gl, programInfo;
 
 function initVisualizer(canvas) {
 	gl = twgl.getWebGLContext(canvas);
 	programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
-
-	var arrays = {position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0]};
-	bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 }
 
-function visualizer(time) {
+function visualizer(time, analyser) {
+	analyser.fftSize = 256;
+	var data = new Uint8Array(analyser.frequencyBinCount);
+	analyser.getByteFrequencyData(data);
+
+	var arrays = {position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0]};
+	var bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
+
 	twgl.resizeCanvasToDisplaySize(gl.canvas);
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 

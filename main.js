@@ -43,7 +43,7 @@ window.onload = function() {
 	}
 
 	initVisualizer(document.getElementById("gl"));
-	draw(0);
+	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
@@ -304,7 +304,6 @@ function draw(time) {
 		vars.fpsCount = 0;
 	}
 
-	visualizer(time);
 	context2d.clearRect(0, 0, canvas.width, canvas.height);
 
 	context2d.lineWidth = 1;
@@ -326,11 +325,12 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			var track = tracks[i];
-			var color = (tracks.length == 1) ? "gray" : colors[i];
+			if (i == 0) {
+				visualizer(time, tracks[i].analyser);
+			}
 
-			if (track.on) {
-				context2d.strokeStyle = color;
+			if (tracks[i].on) {
+				context2d.strokeStyle = (tracks.length == 1) ? "gray" : colors[i];
 				drawArc(arc * n, arc * (n+1));
 				++n;
 			}
