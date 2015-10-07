@@ -1,6 +1,7 @@
 sftp-config.json
 *.wav
-*.m4a
 *.ogg
+*.m4a
+*.mp3
 *.xml
 *.pem

@@ -1,3 +1,4 @@
+// DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 
 function visualizer(canvas, analyser, index, nTracks, color) {
