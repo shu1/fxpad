@@ -230,6 +230,7 @@ function playStart() {
 			tracks[i].source.buffer = tracks[i].buffer;
 			tracks[i].source.connect(tracks[i].lo);
 			tracks[i].source.onended = ended;
+			tracks[i].time = audioContext.currentTime;
 
 			if (tracks[i].source.start) {
 				log("start(" + i + ")");
@@ -316,10 +317,15 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			var color = (tracks.length == 1) ? "dimgray" : colors[i];
-			visualizer(canvas, tracks[i].analyser, i, tracks.length, color);
+			var track = tracks[i];
+			var color = (tracks.length == 1) ? "gray" : colors[i];
+			var progress = track.audio ?
+				track.audio.currentTime / track.audio.duration :
+				(audioContext.currentTime - track.time) / track.buffer.duration;
 
-			if (tracks[i].on) {
+			visualizer(canvas, track.analyser, tracks.length, i, color, progress);
+
+			if (track.on) {
 				context2d.strokeStyle = color;
 				drawArc(arc * n, arc * (n+1));
 				++n;
@@ -330,14 +336,14 @@ function draw(time) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
-			context2d.fillStyle = (vars.nPlaying < 1 || tracks.length == 1) ? "dimgray" : colors[i];
+			context2d.fillStyle = (vars.nPlaying < 1 || tracks.length == 1) ? "gray" : colors[i];
 			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
 		}
 	}
 
 	if (vars.text) {
 		context2d.font = vars.font;
-		context2d.fillStyle = "dimgray";
+		context2d.fillStyle = "gray";
 		context2d.fillText(vars.fpsText + vars.text, 2, 10);
 	}
 
@@ -441,7 +447,7 @@ function mouseUp(event) {
 }
 
 function log(text) {
-	console.log(text);
+	console.log(audioContext.currentTime.toFixed(3), text);
 
 	logs.push(text);
 	vars.text = "";
