@@ -1,6 +1,6 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
-(function() {
+(function(){
 var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
 var colors = ["red", "green", "blue", "orange", "maroon", "teal", "navy", "olive", "purple", "gray"];
 var stems = [
