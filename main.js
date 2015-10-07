@@ -199,8 +199,8 @@ function initTrack(index, text) {
 function setText(index) {
 	tracks[index].font = context2d.font = (tracks[index].on ? "bold " : "") + vars.textHeight + "px sans-serif";
 	var width = context2d.measureText(tracks[index].text).width;
-	tracks[index].x = (vars.width - width)/2 + vars.width * index;
-	tracks[index].x2 = tracks[index].x + width;
+	tracks[index].x1 = (vars.width - width)/2 + vars.width * index;
+	tracks[index].x2 = tracks[index].x1 + width;
 }
 
 function toggleEffect(index) {
@@ -330,7 +330,7 @@ function draw(time) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
 			context2d.fillStyle = (tracks.length == 1) ? "dimgray" : colors[i];
-			context2d.fillText(tracks[i].text, tracks[i].x, vars.textY);
+			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
 		}
 	}
 
@@ -389,7 +389,7 @@ function mouseDown(event) {
 
 	if (vars.y > vars.textY - vars.textHeight) {
 		for (var i = tracks.length-1; i >= 0; --i) {
-			if (vars.x > tracks[i].x && vars.x < tracks[i].x2) {
+			if (vars.x > tracks[i].x1 && vars.x < tracks[i].x2) {
 				vars.drag = true;
 				toggleEffect(i);
 			}
