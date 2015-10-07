@@ -8,12 +8,14 @@
 SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
 var audioType = ".m4a";
 </script>
+<script src="three.min.js"></script>
 <script src="visualizer.js"></script>
 <script src="main.js"></script>
 </head>
 <body>
 	<br>
 	<center>
+		<canvas id="gl" width="854" height="480" style="position:absolute; z-index:-1; border-style:solid"></canvas>
 		<canvas id="canvas" width="854" height="480" style="border-style:solid; touch-action:none"></canvas><br>
 		<span id="span" style="display:none">soundcloud url: <input type="text" id="text" style="width:400px"
 			value="http://soundcloud.com/henrikgrunden/avicii-vs-journey-dont-stop"/></span>

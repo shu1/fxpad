@@ -41,6 +41,8 @@ window.onload = function() {
 		loadAudio(vars.nLoad, stems[vars.nLoad].text, stems[vars.nLoad].src);
 		vars.nLoad++;
 	}
+
+	initVisualizer(document.getElementById("gl"));
 	draw(0);
 
 	if (window.PointerEvent) {
