@@ -327,11 +327,14 @@ function draw(time) {
 		for (var i = tracks.length-1; i >= 0; --i) {
 			var track = tracks[i];
 			var color = (tracks.length == 1) ? "gray" : colors[i];
-			var progress = track.audio ?
-				track.audio.currentTime / track.audio.duration :
-				(audioContext.currentTime - track.time) / track.buffer.duration;
 
-			visualizer(canvas, track.analyser, tracks.length, i, color, progress);
+			if (i == 0) {
+				var progress = track.audio ?
+					track.audio.currentTime / track.audio.duration :
+					(audioContext.currentTime - track.time) / track.buffer.duration;
+
+				visualizer(time);
+			}
 
 			if (track.on) {
 				context2d.strokeStyle = color;
