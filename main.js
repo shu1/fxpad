@@ -6,7 +6,7 @@ var colors = ["red", "green", "blue", "orange", "maroon", "teal", "purple", "oli
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
-	{text:"BG Vocals", src:"BGVocals" + audioType}
+	{text:"Back Vocals", src:"BackVocals" + audioType}
 ]
 
 function initVars() {
@@ -21,7 +21,8 @@ window.onload = function() {
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
-	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0) {
+	log(navigator.userAgent);
+	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0 || navigator.userAgent.indexOf("Android") >= 0) {
 		vars.useBuffer = true;
 	}
 
@@ -314,7 +315,7 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			var color = (tracks.length == 1) ? "dimgray" : colors[i];
+			var color = (tracks.length == 1) ? "dimgray" : colors[i];	// TODO color gray if not playing
 			visualizer(canvas, tracks[i].analyser, i, tracks.length, color);
 
 			if (tracks[i].on) {
@@ -425,7 +426,7 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (vars.nPlaying < 1 && event.target == canvas) {
+	if (vars.click && !vars.drag && vars.nPlaying < 1) {
 		if (vars.nLoaded >= vars.nLoad) {
 			playStart();
 		}
