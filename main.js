@@ -96,12 +96,17 @@ function loadFiles(event) {
 	function loadFile(file, play) {
 		log("loadFile(" + file.name + ")");
 		if (file.type.indexOf("audio") >= 0 || file.type.indexOf("ogg") >= 0) {
-			var reader = new FileReader();
-			reader.onload = function(event) {
-				loadBuffer(vars.nLoad, file.name, event.target.result, play);
+			if (vars.useBuffer) {
+				var reader = new FileReader();
+				reader.onload = function(event) {
+					loadBuffer(vars.nLoad, file.name, event.target.result, play);
+					vars.nLoad++;
+				}
+				reader.readAsArrayBuffer(file);
+			} else {
+				loadAudio(vars.nLoad, file.name, URL.createObjectURL(file), play);
 				vars.nLoad++;
 			}
-			reader.readAsArrayBuffer(file);
 		} else {
 			log("UNSUPPORTED FILE TYPE " + file.type);
 		}
