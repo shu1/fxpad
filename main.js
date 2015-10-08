@@ -325,9 +325,7 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			if (i == 0) {
-				visualizer(time, tracks[i].analyser);
-			}
+			visualizer(time, tracks[i].analyser);
 
 			if (tracks[i].on) {
 				context2d.strokeStyle = (tracks.length == 1) ? "gray" : colors[i];

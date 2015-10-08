@@ -12,15 +12,22 @@ function visualizer(time, analyser) {
 	var data = new Uint8Array(analyser.frequencyBinCount);
 	analyser.getByteFrequencyData(data);
 
-	var arrays = {position:{numComponents:2, data:data}};
+	var n = 2;
+	var positions = new Uint8Array(data.length * n);
+	for (var i = data.length-1; i >= 0; --i) {
+		positions[i*n] = Math.floor(i / data.length * 340);
+		positions[i*n+1] = data[i];
+	}
+
+	var arrays = {position:{numComponents:n, data:positions}};
 	var bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 
 	twgl.resizeCanvasToDisplaySize(gl.canvas);
-	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	gl.viewport(-gl.canvas.width, -gl.canvas.height, gl.canvas.width*2, gl.canvas.height*2);
 
 	var uniforms = {
-		time: time * 0.001,
-		resolution: [gl.canvas.width, gl.canvas.height],
+		time: time/1000,
+		resolution: [gl.canvas.width, gl.canvas.height]
 	};
 
 	gl.useProgram(programInfo.program);
