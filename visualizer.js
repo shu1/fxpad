@@ -4,7 +4,8 @@ function Visualizer(canvas) {
 	var gl = twgl.getWebGLContext(canvas);
 	var programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 
-	var length = Math.ceil(1024 * 0.73);	// need to set to frequencyBinCount, half of fftSize
+	var data = new Uint8Array(1024);	// set to frequencyBinCount, half of fftSize
+	var length = Math.ceil(data.length * 0.73);	// frequencies are mostly flat towards highs
 	var positions = new Float32Array(length * 2);
 	for (var i = length-1; i >= 0; --i) {
 		positions[i*2] = i / length * 2 - 1;	// x normalized to -1 ~ 1
@@ -12,8 +13,6 @@ function Visualizer(canvas) {
 	var bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
 
 	this.draw = function(analyser, color) {
-	//	analyser.fftSize = 256;
-		var data = new Uint8Array(analyser.frequencyBinCount);
 		analyser.getByteFrequencyData(data);
 
 		for (var i = length-1; i >= 0; --i) {
