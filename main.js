@@ -197,6 +197,7 @@ function initTrack(index, text) {
 	hi.frequency.value = 10;
 
 	var analyser = audioContext.createAnalyser();
+	analyser.fftSize = 256;
 
 	lo.connect(hi);
 	hi.connect(analyser);
@@ -340,7 +341,7 @@ function draw(time) {
 
 		for (var i = tracks.length-1; i >= 0; --i) {
 			var c = (tracks.length == 1) ? colors.length-1 : i;
-			visualizer.draw(tracks[i].analyser, colors[c]);
+			visualizer.draw(tracks[i].analyser, colors[c], i / tracks.length);
 
 			if (tracks[i].on) {
 				context2d.strokeStyle = styles[c];

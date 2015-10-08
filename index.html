@@ -41,16 +41,23 @@ var audioType = ".m4a";
 <script src="main.js"></script>
 <script id="vs" type="notjs">
 attribute vec4 position;
+uniform float offset;
+varying float alpha;
 void main() {
-	gl_PointSize = 1.5;
-	gl_Position = position;
+	if (position.y == -1.0) {
+		alpha = 0.0;
+	} else {
+		alpha = 1.0;
+	}
+	gl_Position = vec4(position.x + offset, position.yzw);
 }
 </script>
 <script id="fs" type="notjs">
 precision mediump float;
+varying float alpha;
 uniform vec3 color;
 void main() {
-	gl_FragColor = vec4(color, 1.0);
+	gl_FragColor = vec4(color, alpha);
 }
 </script>
 </html>
