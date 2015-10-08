@@ -12,7 +12,7 @@ function visualizer(time, analyser) {
 	var data = new Uint8Array(analyser.frequencyBinCount);
 	analyser.getByteFrequencyData(data);
 
-	var arrays = {position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0]};
+	var arrays = {position:{numComponents:2, data:data}};
 	var bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 
 	twgl.resizeCanvasToDisplaySize(gl.canvas);

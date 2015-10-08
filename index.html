@@ -14,14 +14,14 @@
 		<input type="file" id="file" multiple/>
 	</center>
 	<br>
-	<div style="width:480px; margin-left:auto; margin-right:auto">
+	<div style="width:600px; margin-left:auto; margin-right:auto">
 		<center><b>DJ effects pad</b></center>
 		<p>
 			Click anywhere in pad to start playing, once track names appear at bottom.<br>
 			Click/drag circle to change effects. See filter usage below.<br>
-			Click on track names to toggle effects for each track.<br>
-			Enter a soundcloud url and hit enter to play soundcloud track.<br>
-			Load up to 10 of your own files at once to play them simultaneously.
+			Click on track names to toggle its effects, or hit the number keys on your keyboard.<br>
+			Enter a soundcloud url and hit enter key to play soundcloud track.<br>
+			Load up to 10 of your own files at once to play them.
 		</p>
 		<p>
 			Low Pass Filter - Drag mouse horizontally in left half of screen.<br>
@@ -31,6 +31,14 @@
 		<p>Made using Web Audio API.</p>
 	</div>
 </body>
+<script src="http://connect.soundcloud.com/sdk-2.0.0.js"></script>
+<script type="text/javascript">
+SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
+var audioType = ".m4a";
+</script>
+<script src="twgl.min.js"></script>
+<script src="visualizer.js"></script>
+<script src="main.js"></script>
 <script id="vs" type="notjs">
 attribute vec4 position;
 
@@ -56,12 +64,4 @@ void main() {
 	gl_FragColor = vec4( vec3( color * 0.5, sin( color + time / 2.5 ) * 0.75, color ), 1.0 );
 }
 </script>
-<script src="http://connect.soundcloud.com/sdk-2.0.0.js"></script>
-<script type="text/javascript">
-SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
-var audioType = ".m4a";
-</script>
-<script src="twgl.min.js"></script>
-<script src="visualizer.js"></script>
-<script src="main.js"></script>
 </html>
