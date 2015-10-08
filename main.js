@@ -2,7 +2,12 @@
 "use strict";
 (function(){
 var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
-var colors = ["red", "green", "blue", "orange", "maroon", "teal", "navy", "olive", "purple", "gray"];
+var colors = [
+	[  1,  0,  0,1],
+	[  0,  1,  0,1],
+	[  0,  0,  1,1],
+	[0.5,0.5,0.5,1]
+]
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
@@ -325,10 +330,11 @@ function draw(time) {
 		context2d.lineWidth = 3;
 
 		for (var i = tracks.length-1; i >= 0; --i) {
-			visualizer(time, tracks[i].analyser);
+			var c = (tracks.length == 1) ? colors.length-1 : i;
+			visualizer(tracks[i].analyser, colors[c]);
 
 			if (tracks[i].on) {
-				context2d.strokeStyle = (tracks.length == 1) ? "gray" : colors[i];
+				context2d.strokeStyle = color(c);
 				drawArc(arc * n, arc * (n+1));
 				++n;
 			}
@@ -338,7 +344,7 @@ function draw(time) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
-			context2d.fillStyle = (vars.nPlaying < 1 || tracks.length == 1) ? "gray" : colors[i];
+			context2d.fillStyle = color((vars.nPlaying < 1 || tracks.length == 1) ? -1 : i);
 			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
 		}
 	}
@@ -350,6 +356,11 @@ function draw(time) {
 	}
 
 	requestAnimationFrame(draw);
+
+	function color(index) {
+		if (index < 0) index = colors.length + index;
+		return "rgb(" + colors[index][0]*255 + "," + colors[index][1]*255 + "," + colors[index][2]*255 + ")";
+	}
 
 	function drawArc(a1, a2) {
 		context2d.beginPath();

@@ -7,33 +7,26 @@ function initVisualizer(canvas) {
 	programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 }
 
-function visualizer(time, analyser) {
-	analyser.fftSize = 256;
+function visualizer(analyser, color) {
+//	analyser.fftSize = 256;
 	var data = new Uint8Array(analyser.frequencyBinCount);
 	analyser.getByteFrequencyData(data);
+	var length = Math.ceil(data.length * 0.73);	// frequencies are mostly flat towards highs
 
-	var n = 2;
-	var positions = new Uint8Array(data.length * n);
-	for (var i = data.length-1; i >= 0; --i) {
-		positions[i*n] = Math.floor(i / data.length * 340);
-		positions[i*n+1] = data[i];
+	var positions = new Float32Array(length * 2);
+	for (var i = length-1; i >= 0; --i) {
+		positions[i*2]   = i / length * 2 - 1;
+		positions[i*2+1] = data[i] / 128 - 1;
 	}
 
-	var arrays = {position:{numComponents:n, data:positions}};
+	var arrays = {position:{numComponents:2, data:positions}};
 	var bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
-
-	twgl.resizeCanvasToDisplaySize(gl.canvas);
-	gl.viewport(-gl.canvas.width, -gl.canvas.height, gl.canvas.width*2, gl.canvas.height*2);
-
-	var uniforms = {
-		time: time/1000,
-		resolution: [gl.canvas.width, gl.canvas.height]
-	};
+	var uniforms = {color:color};
 
 	gl.useProgram(programInfo.program);
 	twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 	twgl.setUniforms(programInfo, uniforms);
-	twgl.drawBufferInfo(gl, gl.TRIANGLES, bufferInfo);
+	twgl.drawBufferInfo(gl, gl.LINE_STRIP, bufferInfo);
 }
 /*
 function visualizer(canvas, analyser, nTracks, index, color, progress) {	// TODO pass in frequency cutoff
