@@ -1,7 +1,7 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 (function(){
-var canvas, context2d, audioContext, visualizer, vars={}, tracks=[], logs=[];
+var canvas, context2d, audioContext, visualizer, vars={}, tracks=[], styles=[], logs=[];
 var colors = [
 	[  1,  0,  0,0.9],
 	[  0,0.5,  0,0.9],
@@ -53,6 +53,9 @@ window.onload = function() {
 		vars.nLoad++;
 	}
 
+	for (var i = colors.length-1; i >= 0; --i) {
+		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
+	}
 	visualizer = new Visualizer(document.getElementById("gl"));
 	requestAnimationFrame(draw);
 
@@ -340,7 +343,7 @@ function draw(time) {
 			visualizer.draw(tracks[i].analyser, colors[c]);
 
 			if (tracks[i].on) {
-				context2d.strokeStyle = color(c);
+				context2d.strokeStyle = styles[c];
 				drawArc(arc * n, arc * (n+1));
 				++n;
 			}
@@ -350,7 +353,7 @@ function draw(time) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
-			context2d.fillStyle = color((vars.nPlaying < 1 || tracks.length == 1) ? -1 : i);
+			context2d.fillStyle = styles[(vars.nPlaying < 1 || tracks.length == 1) ? colors.length-1 : i];
 			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
 		}
 	}
@@ -362,11 +365,6 @@ function draw(time) {
 	}
 
 	requestAnimationFrame(draw);
-
-	function color(index) {
-		if (index < 0) index = colors.length + index;
-		return "rgb(" + Math.floor(colors[index][0]*255) + "," + Math.floor(colors[index][1]*255) + "," + Math.floor(colors[index][2]*255) + ")";
-	}
 
 	function drawArc(a1, a2) {
 		context2d.beginPath();
