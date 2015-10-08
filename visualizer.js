@@ -1,28 +1,31 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
-var gl, programInfo;
+var gl, programInfo, length, positions, bufferInfo;
 
 function initVisualizer(canvas) {
 	gl = twgl.getWebGLContext(canvas);
 	programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
+
+	length = Math.ceil(1024 * 0.73);	// need to update depending on fftSize
+	positions = new Float32Array(length * 2);
+	for (var i = length-1; i >= 0; --i) {
+		positions[i*2] = i / length * 2 - 1;	// x normalized to -1 ~ 1
+	}
+	bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
 }
 
 function visualizer(analyser, color) {
 //	analyser.fftSize = 256;
 	var data = new Uint8Array(analyser.frequencyBinCount);
 	analyser.getByteFrequencyData(data);
-	var length = Math.ceil(data.length * 0.73);	// frequencies are mostly flat towards highs
 
-	var positions = new Float32Array(length * 2);
 	for (var i = length-1; i >= 0; --i) {
-		positions[i*2]   = i / length * 2 - 1;
-		positions[i*2+1] = data[i] / 128 - 1;
+		positions[i*2+1] = data[i] / 128 - 1;	// y normalized to -1 ~ 1
 	}
+	gl.bindBuffer(gl.ARRAY_BUFFER, bufferInfo.attribs.position.buffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
 
-	var arrays = {position:{numComponents:2, data:positions}};
-	var bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 	var uniforms = {color:color};
-
 	gl.useProgram(programInfo.program);
 	twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 	twgl.setUniforms(programInfo, uniforms);
