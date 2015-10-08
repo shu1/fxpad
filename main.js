@@ -1,12 +1,18 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 (function(){
-var canvas, context2d, audioContext, vars={}, tracks=[], logs=[];
+var canvas, context2d, audioContext, visualizer, vars={}, tracks=[], logs=[];
 var colors = [
-	[  1,  0,  0,1],
-	[  0,  1,  0,1],
-	[  0,  0,  1,1],
-	[0.5,0.5,0.5,1]
+	[  1,  0,  0,0.9],
+	[  0,0.5,  0,0.9],
+	[  0,  0,  1,0.9],
+	[  1,0.5,  0,0.9],
+	[0.5,  0,  0,0.9],
+	[  0,  0,0.5,0.9],
+	[0  ,0.5,0.5,0.9],
+	[0.5,  0,0.5,0.9],
+	[0.5,0.5,  0,0.9],
+	[0.5,0.5,0.5,0.9]
 ]
 var stems = [
 	{text:"Music", src:"Music" + audioType},
@@ -47,7 +53,7 @@ window.onload = function() {
 		vars.nLoad++;
 	}
 
-	initVisualizer(document.getElementById("gl"));
+	visualizer = new Visualizer(document.getElementById("gl"));
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -331,7 +337,7 @@ function draw(time) {
 
 		for (var i = tracks.length-1; i >= 0; --i) {
 			var c = (tracks.length == 1) ? colors.length-1 : i;
-			visualizer(tracks[i].analyser, colors[c]);
+			visualizer.draw(tracks[i].analyser, colors[c]);
 
 			if (tracks[i].on) {
 				context2d.strokeStyle = color(c);
@@ -359,7 +365,7 @@ function draw(time) {
 
 	function color(index) {
 		if (index < 0) index = colors.length + index;
-		return "rgb(" + colors[index][0]*255 + "," + colors[index][1]*255 + "," + colors[index][2]*255 + ")";
+		return "rgb(" + Math.floor(colors[index][0]*255) + "," + Math.floor(colors[index][1]*255) + "," + Math.floor(colors[index][2]*255) + ")";
 	}
 
 	function drawArc(a1, a2) {
