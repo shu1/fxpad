@@ -25,7 +25,7 @@ function Visualizer(canvas, frequencyBinCount) {
 		if (window.twgl) {
 			twgl.setTextureFromArray(gl, texture, data, options);
 
-			var uniforms = {color:color, texture:texture, length:data.length, resolution:[canvas.width, canvas.height]};
+			var uniforms = {color:color, texture:texture, resolution:[canvas.width, canvas.height]};
 			gl.useProgram(programInfo.program);
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);
