@@ -2,7 +2,7 @@
 "use strict";
 
 function Visualizer(canvas, frequencyBinCount) {
-	var gl, programInfo, bufferInfo, data, texture, options, width, height;
+	var gl, programInfo, bufferInfo, data, options, texture, width, height;
 
 	if (window.twgl) {
 		gl = twgl.getWebGLContext(canvas);
@@ -24,8 +24,8 @@ function Visualizer(canvas, frequencyBinCount) {
 
 		if (window.twgl) {
 			twgl.setTextureFromArray(gl, texture, data, options);
-
 			var uniforms = {color:color, texture:texture, resolution:[canvas.width, canvas.height]};
+
 			gl.useProgram(programInfo.program);
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);
