@@ -39,25 +39,23 @@ var audioType = ".m4a";
 <script src="twgl.min.js"></script>
 <script src="visualizer.js"></script>
 <script src="main.js"></script>
+
 <script id="vs" type="notjs">
 attribute vec4 position;
-uniform float offset;
-varying float alpha;
 void main() {
-	if (position.y == -1.0) {
-		alpha = 0.0;
-	} else {
-		alpha = 1.0;
-	}
-	gl_Position = vec4(position.x + offset, position.yzw);
+	gl_Position = position;
 }
 </script>
+
 <script id="fs" type="notjs">
 precision mediump float;
-varying float alpha;
 uniform vec3 color;
+uniform sampler2D texture;
+uniform float length;
+uniform vec2 resolution;
 void main() {
-	gl_FragColor = vec4(color, alpha);
+	int i = int(gl_FragCoord.x / resolution.x * length);
+	gl_FragColor = vec4(color, texture2D(texture, vec2(i, 0)));
 }
 </script>
 </html>
