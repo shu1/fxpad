@@ -37,10 +37,6 @@ function Visualizer(canvas, frequencyBinCount, use2d) {
 
 			gl.fillStyle = "dimgray";
 			drawOne(Math.floor(length * progress), 2);
-
-			function drawOne(i, h) {
-				gl.fillRect(i * width, (1 - data[i]/256) * height, width, h);
-			}
 		} else {
 			for (var i = length-1; i >= 0; --i) {
 				positions[i*n+3] = data[i] / 128 - 1;	// y normalized to -1 ~ 1
@@ -53,6 +49,10 @@ function Visualizer(canvas, frequencyBinCount, use2d) {
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);
 			twgl.drawBufferInfo(gl, gl.LINES, bufferInfo);
+		}
+
+		function drawOne(i, h) {
+			gl.fillRect(i * width, (1 - data[i]/256) * height, width, h);
 		}
 	}
 }
