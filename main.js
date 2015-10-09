@@ -2,7 +2,6 @@
 "use strict";
 (function(){
 var canvas, context2d, audioContext, visualizer, styles=[], tracks=[], logs=[];
-
 var colors = [
 	[  1,  0,  0],
 	[  0,0.5,  0],
@@ -15,16 +14,15 @@ var colors = [
 	[0.5,0.5,  0],
 	[0.5,0.5,0.5]
 ]
-
 var stems = [
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
 	{text:"Back Vocals", src:"BackVocals" + audioType}
 ]
-
 var vars = {
 	fftSize:256,
-	textHeight:24
+	textHeight:24,
+	use2d:window.nwf	// if nwf doesn't exist then use gl
 }
 
 function initVars() {
@@ -62,7 +60,8 @@ window.onload = function() {
 	for (var i = colors.length-1; i >= 0; --i) {
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
 	}
-	visualizer = new Visualizer(document.getElementById("gl"), vars.fftSize/2);
+
+	visualizer = new Visualizer(vars.use2d ? canvas : document.getElementById("gl"), vars.fftSize/2, vars.use2d);
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -351,7 +350,7 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, colors[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, vars.use2d ? styles[c] : colors[c], i / tracks.length, progress);
 
 			if (track.on) {
 				context2d.strokeStyle = styles[c];
