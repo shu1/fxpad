@@ -6,6 +6,10 @@ function Visualizer(canvas, frequencyBinCount) {
 
 	if (window.twgl) {
 		gl = twgl.getWebGLContext(canvas);
+		gl.enable(gl.BLEND);
+		gl.blendEquation(gl.FUNC_ADD);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 		programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 		bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:[1,1,-1,1,1,-1,-1,-1]}});
 
