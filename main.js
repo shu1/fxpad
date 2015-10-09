@@ -21,8 +21,7 @@ var stems = [
 ]
 var vars = {
 	fftSize:256,
-	textHeight:24,
-	use2d:window.nwf	// if nwf doesn't exist then use gl
+	textHeight:24
 }
 
 function initVars() {
@@ -61,7 +60,7 @@ window.onload = function() {
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
 	}
 
-	visualizer = new Visualizer(vars.use2d ? canvas : document.getElementById("gl"), vars.fftSize/2, vars.use2d);
+	visualizer = new Visualizer(window.twgl ? document.getElementById("gl") : canvas, vars.fftSize/2);
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -350,7 +349,7 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, vars.use2d ? styles[c] : colors[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, window.twgl ? colors[c] : styles[c], i / tracks.length, progress);
 
 			if (track.on) {
 				context2d.strokeStyle = styles[c];

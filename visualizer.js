@@ -1,16 +1,12 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 
-function Visualizer(canvas, frequencyBinCount, use2d) {
+function Visualizer(canvas, frequencyBinCount) {
 	var gl, width, height, n, positions, programInfo, bufferInfo;
-	var length = Math.ceil(frequencyBinCount * 0.73);	// trim off the high end which are flat anyway
+	var length = Math.ceil(frequencyBinCount * 0.67);	// trim off the high end which are flat anyway
 	var data = new Uint8Array(length);
 
-	if (use2d) {
-		width = canvas.width / length;
-		height = canvas.height;
-		gl = canvas.getContext("2d");
-	} else {
+	if (window.twgl) {
 		width = 2 / length;	// 2 is width of clipspace
 		n = 4;
 		positions = new Float32Array(length * n);
@@ -24,20 +20,16 @@ function Visualizer(canvas, frequencyBinCount, use2d) {
 		gl = twgl.getWebGLContext(canvas);
 		programInfo = twgl.createProgramInfo(gl, ["vs", "fs"]);
 		bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
+	} else {
+		width = canvas.width / length;
+		height = canvas.height;
+		gl = canvas.getContext("2d");
 	}
 
 	this.draw = function(analyser, color, offset, progress) {
 		analyser.getByteFrequencyData(data);
 
-		if (use2d) {
-			gl.fillStyle = color;
-			for (var i = length-1; i >= 0; --i) {
-				drawOne(i, 1);
-			}
-
-			gl.fillStyle = "dimgray";
-			drawOne(Math.floor(length * progress), 2);
-		} else {
+		if (window.twgl) {
 			for (var i = length-1; i >= 0; --i) {
 				positions[i*n+3] = data[i] / 128 - 1;	// y normalized to -1 ~ 1
 			}
@@ -49,6 +41,14 @@ function Visualizer(canvas, frequencyBinCount, use2d) {
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);
 			twgl.drawBufferInfo(gl, gl.LINES, bufferInfo);
+		} else {
+			gl.fillStyle = color;
+			for (var i = length-1; i >= 0; --i) {
+				drawOne(i, 1);
+			}
+
+			gl.fillStyle = "dimgray";
+			drawOne(Math.floor(length * progress), 2);
 		}
 
 		function drawOne(i, h) {
