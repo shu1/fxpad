@@ -60,7 +60,7 @@ window.onload = function() {
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
 	}
 
-	visualizer = new Visualizer(window.twgl ? document.getElementById("gl") : canvas, vars.fftSize/2);
+	visualizer = new Visualizer(document.getElementById("gl"), context2d, vars.fftSize/2);
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -349,7 +349,7 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, window.twgl ? colors[c] : styles[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, visualizer.getIndex() ? colors[c] : styles[c], i / tracks.length, progress);
 
 			if (track.on) {
 				context2d.strokeStyle = styles[c];

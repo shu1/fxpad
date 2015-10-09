@@ -40,18 +40,39 @@ var audioType = ".m4a";
 <script src="visualizer.js"></script>
 <script src="main.js"></script>
 
-<script id="vs" type="vs">
+<script type="vs" id="vs1">
+attribute vec4 position;
+varying float alpha;
+uniform float offset;
+void main() {
+	if (position.y == -1.0) {
+		alpha = 0.0;
+	} else {
+		alpha = 1.0;
+	}
+	gl_Position = vec4(position.x + offset, position.yzw);
+}
+</script>
+<script type="fs" id="fs1">
+precision mediump float;
+uniform vec3 color;
+varying float alpha;
+void main() {
+	gl_FragColor = vec4(color, alpha);
+}
+</script>
+
+<script type="vs" id="vs2">
 attribute vec4 position;
 void main() {
 	gl_Position = position;
 }
 </script>
-
-<script id="fs" type="fs">
+<script type="fs" id="fs2">
 precision mediump float;
-uniform vec3 color;
-uniform sampler2D texture;
 uniform vec2 resolution;
+uniform sampler2D texture;
+uniform vec3 color;
 void main() {
 	vec2 coord = vec2(gl_FragCoord.x / resolution.x, 0);
 	float alpha = texture2D(texture, coord).a;
