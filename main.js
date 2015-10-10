@@ -51,8 +51,8 @@ window.onload = function() {
 	vars.textY = canvas.height - vars.textHeight/4;
 
 	initVars();
-	for (var i = stems.length-1; i >= 0; --i) {
-		loadAudio(vars.nLoad, stems[vars.nLoad].text, stems[vars.nLoad].src);
+	for (var i = 0; i < stems.length; ++i) {
+		loadAudio(i, stems[i].text, stems[i].src);
 		vars.nLoad++;
 	}
 
@@ -61,7 +61,6 @@ window.onload = function() {
 	}
 
 	visualizer = new Visualizer(document.getElementById("gl"), context2d, vars.fftSize/2);
-	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
@@ -76,14 +75,9 @@ window.onload = function() {
 	window.onmouseup = mouseUp;
 
 	window.onkeypress = function(event) {
-		if (event.charCode == 32) {
-			visualizer.next();
-			event.preventDefault();
-		} else {
-			var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
-			if (i >= 0 && i < tracks.length) {
-				toggleEffect(i);
-			}
+		var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
+		if (i >= 0 && i < tracks.length) {
+			toggleEffect(i);
 		}
 	}
 
@@ -110,6 +104,24 @@ window.onload = function() {
 	if (span && !vars.useBuffer) {
 		span.style.display = "inline";	// if not mobile then show sc input ui
 	}
+
+	var select = document.getElementById("select");
+	if (select) {
+		var texts = visualizer.texts();
+		for (var i = 0; i < texts.length; ++i) {
+			var option = document.createElement("option");
+			option.value = i;
+			option.innerHTML = texts[i];
+			if (i == visualizer.getIndex()) option.selected = true;
+			select.appendChild(option);
+		}
+
+		select.onchange = function(event) {
+			visualizer.setIndex(parseInt(event.target.value));
+		}
+	}
+
+	requestAnimationFrame(draw);
 }
 
 function loadFiles(event) {
@@ -121,7 +133,7 @@ function loadFiles(event) {
 			length = colors.length;
 			log("MAX " + length + " FILES");
 		}
-		for (var i = length-1; i >= 0; --i) {
+		for (var i = 0; i < length; ++i) {
 			loadFile(files[i], files.length == 1);
 		}
 	}
@@ -355,7 +367,7 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, visualizer.index() ? colors[c] : styles[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, visualizer.getIndex() ? colors[c] : styles[c], i / tracks.length, progress);
 
 			if (track.on) {
 				context2d.strokeStyle = styles[c];

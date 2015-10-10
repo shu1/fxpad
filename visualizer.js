@@ -46,19 +46,16 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 		}
 	}
 
-	this.next = function () {
-		visIndex++;
-		if (visIndex > 2) {
-			visIndex = 0;
-			if (window.twgl) {
-				gl.clearColor(0, 0, 0, 0);
-				gl.clear(gl.COLOR_BUFFER_BIT);
-			}
+	this.setIndex = function(index) {
+		visIndex = index;
+		if (visIndex == 0 && gl) {
+			gl.clearColor(0, 0, 0, 0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
 		init();
 	}
 
-	this.index = function() {
+	this.getIndex = function() {
 		return visIndex;
 	}
 
@@ -99,5 +96,9 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 		function drawOne(i, h) {
 			context2d.fillRect(i * width, (1 - data[i]/255) * height, width, h);
 		}
+	}
+
+	this.texts = function() {
+		return ["2D particles", "GL lines", "GL pixel shader"];
 	}
 }
