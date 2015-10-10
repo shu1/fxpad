@@ -5,7 +5,7 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 	var gl, programInfo, bufferInfo, data, n, positions, options, texture, width;
 	var height = canvas.height;
 	var cutoff = 0.67;
-	var visIndex = 1;
+	var visIndex = 0;
 
 	if (window.twgl) {
 		gl = twgl.getWebGLContext(canvas);
@@ -99,6 +99,6 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 	}
 
 	this.texts = function() {
-		return ["2D particles", "GL lines", "GL pixel shader"];
+		return ["Particles", "Bellagio", "Pixel shader"];
 	}
 }
