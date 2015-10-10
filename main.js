@@ -97,9 +97,9 @@ window.onload = function() {
 		file.onchange = loadFiles;
 	}
 
-	var text = document.getElementById("text");
-	if (text) {
-		text.onkeypress = function(event) {
+	var url = document.getElementById("url");
+	if (url) {
+		url.onkeypress = function(event) {
 			if (event.keyCode == 13) {
 				loadSC();
 			}
@@ -148,7 +148,7 @@ function loadFiles(event) {
 }
 
 function loadSC() {
-	var url = document.getElementById("text").value;
+	var url = document.getElementById("url").value;
 	log("loadSoundcloud(" + url + ")");
 	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
