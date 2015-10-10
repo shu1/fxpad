@@ -108,16 +108,17 @@ window.onload = function() {
 }
 
 function loadFiles(event) {
-	pauseStop(true);
 	var files = event.target.files || event.dataTransfer.files;
 	var length = files.length;
-	if (length > colors.length) {
-		length = colors.length;
-		log("MAX " + length + " FILES");
-	}
-
-	for (var i = length-1; i >= 0; --i) {
-		loadFile(files[i], files.length == 1);
+	if (length > 0) {
+		pauseStop(true);
+		if (length > colors.length) {
+			length = colors.length;
+			log("MAX " + length + " FILES");
+		}
+		for (var i = length-1; i >= 0; --i) {
+			loadFile(files[i], files.length == 1);
+		}
 	}
 	event.preventDefault();
 
