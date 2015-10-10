@@ -1,14 +1,13 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 
-function Visualizer(canvas, context2d, frequencyBinCount) {
-	var gl, programInfo, bufferInfo, data, n, positions, options, texture, width;
-	var height = canvas.height;
+function Visualizer(glCanvas, context2d) {
+	var gl, programInfo, bufferInfo, fftSize, data, width, height, n, positions, options, texture;
 	var cutoff = 0.67;
 	var visIndex = 0;
 
-	if (window.twgl) {
-		gl = twgl.getWebGLContext(canvas);
+	if (glCanvas && window.twgl) {
+		gl = twgl.getWebGLContext(glCanvas);
 		gl.enable(gl.BLEND);
 		gl.blendEquation(gl.FUNC_ADD);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -19,11 +18,14 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 	function init() {
 		switch(visIndex) {
 		case 0:
-			data = new Uint8Array(Math.ceil(frequencyBinCount * cutoff));
-			width = canvas.width / data.length;
+			fftSize = 256;
+			data = new Uint8Array(Math.ceil(fftSize/2 * cutoff));
+			width = context2d.canvas.width / data.length;
+			height = context2d.canvas.height;
 			break;
 		case 1:
-			data = new Uint8Array(Math.ceil(frequencyBinCount * cutoff));
+			fftSize = 256;
+			data = new Uint8Array(Math.ceil(fftSize/2 * cutoff));
 			width = 2 / data.length;	// 2 is width of clipspace
 			n = 4;
 			positions = new Float32Array(data.length * n);
@@ -37,7 +39,8 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 			bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
 			break;
 		case 2:
-			data = new Uint8Array(frequencyBinCount);
+			fftSize = 2048;
+			data = new Uint8Array(fftSize/2);
 			options = {width:data.length, height:1, format:gl.ALPHA};
 			texture = twgl.createTexture(gl, options);
 			programInfo = twgl.createProgramInfo(gl, ["vs2", "fs2"]);
@@ -60,16 +63,17 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 	}
 
 	this.draw = function(analyser, color, offset, progress) {
+		analyser.fftSize = fftSize;
 		analyser.getByteFrequencyData(data);
 
 		switch (visIndex) {
 		case 0:
 			context2d.fillStyle = color;
 			for (var i = data.length-1; i >= 0; --i) {
-				drawOne(i, 1);
+				drawRect(i, 1);
 			}
 			context2d.fillStyle = "dimgray";
-			drawOne(Math.floor(data.length * progress), 2);
+			drawRect(Math.floor(data.length * progress), 2);
 			break;
 		case 1:
 			for (var i = data.length-1; i >= 0; --i) {
@@ -85,7 +89,7 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 			break;
 		case 2:
 			twgl.setTextureFromArray(gl, texture, data, options);
-			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[canvas.width, canvas.height]};
+			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[gl.canvas.width, gl.canvas.height]};
 			gl.useProgram(programInfo.program);
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);
@@ -93,7 +97,7 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 			break;
 		}
 
-		function drawOne(i, h) {
+		function drawRect(i, h) {
 			context2d.fillRect(i * width, (1 - data[i]/255) * height, width, h);
 		}
 	}

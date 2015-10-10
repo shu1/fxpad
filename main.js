@@ -1,7 +1,7 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 (function(){
-var canvas, context2d, audioContext, visualizer, styles=[], tracks=[], logs=[];
+var canvas, context2d, audioContext, visualizer, vars={}, styles=[], tracks=[], logs=[];
 var colors = [
 	[  1,  0,  0],
 	[  0,0.5,  0],
@@ -19,10 +19,6 @@ var stems = [
 	{text:"Vocals", src:"Vocals" + audioType},
 	{text:"Back Vocals", src:"BackVocals" + audioType}
 ]
-var vars = {
-	fftSize:256,
-	textHeight:24
-}
 
 function initVars() {
 	vars.nOn = 0;
@@ -48,6 +44,7 @@ window.onload = function() {
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
+	vars.textHeight = 24;
 	vars.textY = canvas.height - vars.textHeight/4;
 
 	initVars();
@@ -60,7 +57,7 @@ window.onload = function() {
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
 	}
 
-	visualizer = new Visualizer(document.getElementById("gl"), context2d, vars.fftSize/2);
+	visualizer = new Visualizer(document.getElementById("gl"), context2d);
 
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
@@ -219,7 +216,6 @@ function initTrack(index, text) {
 	hi.frequency.value = 10;
 
 	var analyser = audioContext.createAnalyser();
-	analyser.fftSize = vars.fftSize;
 
 	lo.connect(hi);
 	hi.connect(analyser);
