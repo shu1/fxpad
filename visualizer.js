@@ -103,6 +103,6 @@ function Visualizer(glCanvas, context2d) {
 	}
 
 	this.texts = function() {
-		return ["Particles", "Bellagio", "Pixel shader"];
+		return ["Spectrum", "Bellagio", "Pixel shader"];
 	}
 }

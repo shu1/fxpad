@@ -3,12 +3,12 @@
 (function(){
 var canvas, context2d, audioContext, visualizer, vars={}, styles=[], tracks=[], logs=[];
 var colors = [
+	[  0,  0,  1],
 	[  1,  0,  0],
 	[  0,0.5,  0],
-	[  0,  0,  1],
 	[  1,0.5,  0],
-	[0.5,  0,  0],
 	[  0,  0,0.5],
+	[0.5,  0,  0],
 	[0  ,0.5,0.5],
 	[0.5,  0,0.5],
 	[0.5,0.5,  0],
@@ -357,7 +357,7 @@ function draw(time) {
 		var n = 0, arc = Math.PI*2 / vars.nOn;
 		context2d.lineWidth = 3;
 
-		for (var i = tracks.length-1; i >= 0; --i) {
+		for (var i = 0; i < tracks.length; ++i) {
 			var c = (tracks.length == 1) ? colors.length-1 : i;
 			var track = tracks[i];
 			var progress = track.audio ?
