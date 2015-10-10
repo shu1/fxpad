@@ -82,7 +82,8 @@ void main() {
 	float x = (gl_FragCoord.x / resolution.x) * cutoff;
 	float a = texture2D(texture, vec2(x, 0)).a;
 	float y = (gl_FragCoord.y / resolution.y);
-	float alpha = inverse ? exp2(a-y) - 1.0 : exp2(y-a) - 1.0;
+	float e = inverse ? exp2(a-y) : exp2(y-a);
+	float alpha = (e - 0.5) / 1.5;
 	gl_FragColor = vec4(color, alpha);
 }
 </script>
