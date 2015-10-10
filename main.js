@@ -76,9 +76,14 @@ window.onload = function() {
 	window.onmouseup = mouseUp;
 
 	window.onkeypress = function(event) {
-		var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
-		if (i >= 0 && i < tracks.length) {
-			toggleEffect(i);
+		if (event.charCode == 32) {
+			visualizer.next();
+			event.preventDefault();
+		} else {
+			var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
+			if (i >= 0 && i < tracks.length) {
+				toggleEffect(i);
+			}
 		}
 	}
 
@@ -350,7 +355,7 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, visualizer.getIndex() ? colors[c] : styles[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, visualizer.index() ? colors[c] : styles[c], i / tracks.length, progress);
 
 			if (track.on) {
 				context2d.strokeStyle = styles[c];

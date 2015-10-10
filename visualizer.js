@@ -14,35 +14,51 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	}
 
-	switch(visIndex) {
-	case 0:
-		data = new Uint8Array(Math.ceil(frequencyBinCount * cutoff));
-		width = canvas.width / data.length;
-		break;
-	case 1:
-		data = new Uint8Array(Math.ceil(frequencyBinCount * cutoff));
-		width = 2 / data.length;	// 2 is width of clipspace
-		n = 4;
-		positions = new Float32Array(data.length * n);
-		for (var i = data.length-1; i >= 0; --i) {
-			var x = i / data.length * 2 - 1;	// x normalized to -1 ~ 1
-			positions[i*n] = x;
-			positions[i*n+1] = -1;
-			positions[i*n+2] = x;
+	init();
+
+	function init() {
+		switch(visIndex) {
+		case 0:
+			data = new Uint8Array(Math.ceil(frequencyBinCount * cutoff));
+			width = canvas.width / data.length;
+			break;
+		case 1:
+			data = new Uint8Array(Math.ceil(frequencyBinCount * cutoff));
+			width = 2 / data.length;	// 2 is width of clipspace
+			n = 4;
+			positions = new Float32Array(data.length * n);
+			for (var i = data.length-1; i >= 0; --i) {
+				var x = i / data.length * 2 - 1;	// x normalized to -1 ~ 1
+				positions[i*n] = x;
+				positions[i*n+1] = -1;
+				positions[i*n+2] = x;
+			}
+			programInfo = twgl.createProgramInfo(gl, ["vs1", "fs1"]);
+			bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
+			break;
+		case 2:
+			data = new Uint8Array(frequencyBinCount);
+			options = {width:data.length, height:1, format:gl.ALPHA};
+			texture = twgl.createTexture(gl, options);
+			programInfo = twgl.createProgramInfo(gl, ["vs2", "fs2"]);
+			bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:[1,1,-1,1,1,-1,-1,-1]}});
+			break;
 		}
-		programInfo = twgl.createProgramInfo(gl, ["vs1", "fs1"]);
-		bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
-		break;
-	case 2:
-		data = new Uint8Array(frequencyBinCount);
-		options = {width:data.length, height:1, format:gl.ALPHA};
-		texture = twgl.createTexture(gl, options);
-		programInfo = twgl.createProgramInfo(gl, ["vs2", "fs2"]);
-		bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:[1,1,-1,1,1,-1,-1,-1]}});
-		break;
 	}
 
-	this.getIndex = function() {
+	this.next = function () {
+		visIndex++;
+		if (visIndex > 2) {
+			visIndex = 0;
+			if (window.twgl) {
+				gl.clearColor(0, 0, 0, 0);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+			}
+		}
+		init();
+	}
+
+	this.index = function() {
 		return visIndex;
 	}
 
