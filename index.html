@@ -48,11 +48,7 @@ attribute vec4 position;
 varying float alpha;
 uniform float offset;
 void main() {
-	if (position.y == -1.0) {
-		alpha = 0.0;
-	} else {
-		alpha = 1.0;
-	}
+	alpha = (position.y == -1.0) ? 0.0 : 1.0;
 	gl_Position = vec4(position.x + offset, position.yzw);
 }
 </script>
@@ -82,8 +78,7 @@ void main() {
 	float x = (gl_FragCoord.x / resolution.x) * cutoff;
 	float a = texture2D(texture, vec2(x, 0)).a;
 	float y = (gl_FragCoord.y / resolution.y);
-	float e = inverse ? exp2(a-y) : exp2(y-a);
-	float alpha = (e - 0.5) / 1.5;
+	float alpha = inverse ? 1.5-exp2(y-a) : exp2(y-a)-1.0;
 	gl_FragColor = vec4(color, alpha);
 }
 </script>
