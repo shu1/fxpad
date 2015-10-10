@@ -39,7 +39,8 @@ function Visualizer(glCanvas, context2d) {
 			bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
 			break;
 		case 2:
-			fftSize = 2048;
+		case 3:
+			fftSize = 256;
 			data = new Uint8Array(fftSize/2);
 			options = {width:data.length, height:1, format:gl.ALPHA};
 			texture = twgl.createTexture(gl, options);
@@ -88,8 +89,9 @@ function Visualizer(glCanvas, context2d) {
 			twgl.drawBufferInfo(gl, gl.LINES, bufferInfo);
 			break;
 		case 2:
+		case 3:
 			twgl.setTextureFromArray(gl, texture, data, options);
-			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[gl.canvas.width, gl.canvas.height]};
+			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[gl.canvas.width, gl.canvas.height], inverse:visIndex == 2};
 			gl.useProgram(programInfo.program);
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);
@@ -103,6 +105,6 @@ function Visualizer(glCanvas, context2d) {
 	}
 
 	this.texts = function() {
-		return ["Spectrum", "Bellagio", "Pixel shader"];
+		return ["Spectrum", "Bellagio", "Mirage", "Aurora"];
 	}
 }

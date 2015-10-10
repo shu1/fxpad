@@ -76,11 +76,13 @@ precision mediump float;
 uniform vec2 resolution;
 uniform float cutoff;
 uniform sampler2D texture;
+uniform bool inverse;
 uniform vec3 color;
 void main() {
 	float x = (gl_FragCoord.x / resolution.x) * cutoff;
-	vec2 coord = vec2(x, 0);
-	float alpha = texture2D(texture, coord).a;
+	float a = texture2D(texture, vec2(x, 0)).a;
+	float y = (gl_FragCoord.y / resolution.y);
+	float alpha = inverse ? exp2(a-y) - 1.0 : exp2(y-a) - 1.0;
 	gl_FragColor = vec4(color, alpha);
 }
 </script>
