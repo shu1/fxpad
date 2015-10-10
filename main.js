@@ -29,9 +29,10 @@ function initVars() {
 }
 
 window.onload = function() {
+	window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
+	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
-	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 	log(navigator.userAgent);
 	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0 || navigator.userAgent.indexOf("Android") >= 0) {
 		vars.useBuffer = true;
@@ -58,6 +59,7 @@ window.onload = function() {
 	}
 
 	visualizer = new Visualizer(document.getElementById("gl"), context2d);
+	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
@@ -117,8 +119,6 @@ window.onload = function() {
 			visualizer.setIndex(parseInt(event.target.value));
 		}
 	}
-
-	requestAnimationFrame(draw);
 }
 
 function loadFiles(event) {
@@ -503,26 +503,6 @@ function log(text) {
 	}
 }
 })();
-(function() {
-var lastTime = 0;
-var vendors = ['webkit'];
-for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-	window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-	window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-}
-if (!window.requestAnimationFrame)
-	window.requestAnimationFrame = function(callback, element) {
-		var currTime = new Date().getTime();
-		var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-		var id = window.setTimeout(function(){callback(currTime + timeToCall)}, timeToCall);
-		lastTime = currTime + timeToCall;
-		return id;
-	};
-if (!window.cancelAnimationFrame)
-	window.cancelAnimationFrame = function(id) {
-		clearTimeout(id);
-	};
-}());
 if (!window.nwf) {
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
