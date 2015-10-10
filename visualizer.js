@@ -85,7 +85,7 @@ function Visualizer(canvas, context2d, frequencyBinCount) {
 			break;
 		case 2:
 			twgl.setTextureFromArray(gl, texture, data, options);
-			var uniforms = {color:color, texture:texture, resolution:[canvas.width, canvas.height]};
+			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[canvas.width, canvas.height]};
 			gl.useProgram(programInfo.program);
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);

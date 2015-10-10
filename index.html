@@ -74,10 +74,12 @@ void main() {
 <script type="fs" id="fs2">
 precision mediump float;
 uniform vec2 resolution;
+uniform float cutoff;
 uniform sampler2D texture;
 uniform vec3 color;
 void main() {
-	vec2 coord = vec2(gl_FragCoord.x / resolution.x, 0);
+	float x = (gl_FragCoord.x / resolution.x) * cutoff;
+	vec2 coord = vec2(x, 0);
 	float alpha = texture2D(texture, coord).a;
 	gl_FragColor = vec4(color, alpha);
 }
