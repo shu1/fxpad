@@ -14,7 +14,7 @@ var colors = [
 	[0.5,0.5,  0],
 	[0.5,0.5,0.5]
 ]
-var stems = [
+var stems = [	// TODO add more stems
 	{text:"Music", src:"Music" + audioType},
 	{text:"Vocals", src:"Vocals" + audioType},
 	{text:"Back Vocals", src:"BackVocals" + audioType}
@@ -24,11 +24,11 @@ function initVars() {
 	vars.nOn = 0;
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
-	vars.nPlaying = 0;
+	vars.nPlay = 0;
 	tracks.length = 0;
 }
 
-window.onload = function() {
+window.onload = function() {	// TODO accept url parameters for settings
 	window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 	canvas = document.getElementById("canvas");
@@ -247,18 +247,20 @@ function setText(index) {
 }
 
 function toggleEffect(index) {
-	log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
-	tracks[index].on = !tracks[index].on;
-	setText(index);
+	if (vars.nPlay < 1 || tracks[index].play) {
+		log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
+		tracks[index].on = !tracks[index].on;
+		setText(index);
 
-	vars.nOn = 0;
-	for (var i = tracks.length-1; i >= 0; --i) {
-		if (tracks[i] && tracks[i].on) {
-			vars.nOn++;
+		vars.nOn = 0;
+		for (var i = tracks.length-1; i >= 0; --i) {
+			if (tracks[i] && tracks[i].on) {
+				vars.nOn++;
+			}
 		}
-	}
 
-	doFilters(index);
+		doFilters(index);
+	}
 }
 
 function playStart() {
@@ -282,13 +284,14 @@ function playStart() {
 				tracks[i].source.noteOn(0);
 			}
 		}
-		vars.nPlaying++;
+		tracks[i].play = true;
+		vars.nPlay++;
 	}
 }
 
 function pauseStop(force) {
 	if (force || vars.nLoad > 0) {
-		if (vars.nPlaying > 0) {
+		if (vars.nPlay > 0) {
 			for (var i = tracks.length-1; i >= 0; --i) {
 				if (tracks[i].audio) {
 					log("pause(" + (i+1) + ")");
@@ -302,6 +305,7 @@ function pauseStop(force) {
 					log("noteOff(" + (i+1) + ")");
 					tracks[i].source.noteOff(0);
 				}
+				tracks[i].play = false;
 			}
 		}
 		initVars();
@@ -312,7 +316,8 @@ function ended(event) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio == event.target || tracks[i].source == event.target) {
 			log("ended(" + (i+1) + ")");
-			vars.nPlaying--;
+			vars.nPlay--;
+			tracks[i].play = false;
 			tracks[i].on = false;
 			setText(i);
 		}
@@ -320,7 +325,7 @@ function ended(event) {
 
 	vars.nOn = 0;
 	for (var i = tracks.length-1; i >= 0; --i) {
-		if (vars.nPlaying < 1) {
+		if (vars.nPlay < 1) {
 			tracks[i].on = true;
 			setText(i);
 		}
@@ -351,15 +356,17 @@ function draw(time) {
 	context2d.lineTo(canvas.width/2, canvas.height);
 	context2d.stroke();
 
-	drawArc(0, Math.PI*2);
+	if (vars.nPlay < 1 || vars.nOn < 1) {
+		drawArc(0, Math.PI*2);
+	}
 
-	if (vars.nPlaying > 0) {
-		var n = 0, arc = Math.PI*2 / vars.nOn;
-		context2d.lineWidth = 3;
+	var n = 0, arc = Math.PI*2 / vars.nOn;
+	context2d.lineWidth = 3;
 
-		for (var i = 0; i < tracks.length; ++i) {
+	for (var i = 0; i < tracks.length; ++i) {
+		var track = tracks[i];
+		if (track && track.play) {
 			var c = (tracks.length == 1) ? colors.length-1 : i;
-			var track = tracks[i];
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
@@ -376,7 +383,7 @@ function draw(time) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
-			context2d.fillStyle = styles[(vars.nPlaying < 1 || tracks.length == 1) ? colors.length-1 : i];
+			context2d.fillStyle = styles[(vars.nPlay < 1 || tracks.length == 1 || !tracks[i].play) ? colors.length-1 : i];
 			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
 		}
 	}
@@ -473,7 +480,7 @@ function mouseMove(event) {
 }
 
 function mouseUp(event) {
-	if (vars.click && !vars.drag && vars.nPlaying < 1) {
+	if (vars.click && !vars.drag && vars.nPlay < 1) {
 		if (vars.nLoaded >= vars.nLoad) {
 			playStart();
 		}
