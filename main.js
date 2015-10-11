@@ -1,7 +1,7 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 (function(){
-var canvas, context2d, audioContext, visualizer, vars={}, styles=[], tracks=[], logs=[];
+var canvas, context2d, audioContext, visualizer, params={}, vars={}, styles=[], tracks=[], logs=[];
 var colors = [
 	[  1,  0,  0],
 	[  0,  0,  1],
@@ -28,14 +28,22 @@ function initVars() {
 	tracks.length = 0;
 }
 
-window.onload = function() {	// TODO accept url parameters for settings
+window.onload = function() {
 	window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
+
 	log(navigator.userAgent);
 	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0 || navigator.userAgent.indexOf("Android") >= 0) {
 		vars.useBuffer = true;
+	}
+
+	var param = location.search.slice(1).split("&");
+	for (var i  = param.length-1; i >= 0; --i) {
+		log(param[i]);
+		var pair = param[i].split("=");
+		params[pair[0]] = pair[1];
 	}
 
 	vars.fpsTime = 0;
@@ -58,7 +66,8 @@ window.onload = function() {	// TODO accept url parameters for settings
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
 	}
 
-	visualizer = new Visualizer(document.getElementById("gl"), context2d);
+	visualizer = new Visualizer(context2d, document.getElementById("gl"));
+	visualizer.setIndex(parseInt(params["vis"]));
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -116,7 +125,9 @@ window.onload = function() {	// TODO accept url parameters for settings
 		}
 
 		select.onchange = function(event) {
-			visualizer.setIndex(parseInt(event.target.value));
+			var index = event.target.value;
+			log("visualizer(" + index + ")");
+			visualizer.setIndex(index);
 		}
 	}
 }
@@ -510,7 +521,7 @@ function log(text) {
 	}
 }
 })();
-if (!window.nwf) {
+if(!window.nwf){
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)

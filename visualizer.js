@@ -1,8 +1,9 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 
-function Visualizer(glCanvas, context2d) {
+function Visualizer(context2d, glCanvas) {
 	var gl, programInfo, bufferInfo, fftSize, data, width, height, n, positions, options, texture;
+	var texts = ["Spectrum", "Bellagio", "Mirage", "Aurora"];
 	var cutoff = 0.67;
 	var visIndex = 0;
 
@@ -51,12 +52,15 @@ function Visualizer(glCanvas, context2d) {
 	}
 
 	this.setIndex = function(index) {
-		visIndex = index;
-		if (visIndex == 0 && gl) {
-			gl.clearColor(0, 0, 0, 0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
+		index = parseInt(index);
+		if (index != visIndex && index >= 0 && index < texts.length) {
+			visIndex = index;
+			if (visIndex == 0 && gl) {
+				gl.clearColor(0, 0, 0, 0);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+			}
+			init();
 		}
-		init();
 	}
 
 	this.getIndex = function() {
@@ -105,6 +109,6 @@ function Visualizer(glCanvas, context2d) {
 	}
 
 	this.texts = function() {
-		return ["Spectrum", "Bellagio", "Mirage", "Aurora"];
+		return texts;
 	}
 }
