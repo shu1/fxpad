@@ -3,23 +3,23 @@
 (function(){
 var canvas, context2d, audioContext, visualizer, params={}, vars={}, styles=[], tracks=[], logs=[];
 var colors = [
-	[  1,  0,  0],
-	[  0,  0,  1],
 	[  0,0.5,  0],
+	[  0,  0,  1],
+	[  1,  0,  0],
 	[  1,0.5,  0],
 	[  0,  0,0.5],
 	[0.5,  0,  0],
 	[0  ,0.5,0.5],
 	[0.5,  0,0.5],
 	[0.5,0.5,  0],
-	[0.5,0.5,0.5]
+	[0.5,0.5,0.5],
 ]
 var stems = [{
 	text: "Viva Las Vegas - Elvis Presley",
 	tracks: [
 		{text:"Music", src:"Viva-Music" + audioType},
 		{text:"Vocals", src:"Viva-Vocals" + audioType},
-		{text:"Chorus", src:"Viva-Chorus" + audioType}
+		{text:"Chorus", src:"Viva-Chorus" + audioType},
 	]
 },{
 	text: "White Rabbit - Jefferson Airplane",
@@ -27,17 +27,17 @@ var stems = [{
 		{text:"Bass Drums", src:"White-BassDrums.wav"},
 		{text:"Guitar", src:"White-Guitar.wav"},
 		{text:"Vocals", src:"White-Vocals.wav"},
-		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"}
+		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"},
 	]
 },{
 	text: "Don't Stop Me Now - Queen",
 	tracks: [
+		{text:"Vocals", src:"Dont-Vocals.mp3"},
+		{text:"Piano", src:"Dont-Piano.mp3"},
 		{text:"Bass", src:"Dont-Bass.mp3"},
 		{text:"Chorus", src:"Dont-Chorus.mp3"},
 		{text:"Drums", src:"Dont-Drums.mp3"},
 		{text:"Guitar", src:"Dont-Guitar.mp3"},
-		{text:"Piano", src:"Dont-Piano.mp3"},
-		{text:"Vocals", src:"Dont-Vocals.mp3"}
 	]
 }]
 
@@ -423,7 +423,7 @@ function draw(time) {
 	var n = 0, arc = Math.PI*2 / vars.nOn;
 	context2d.lineWidth = 3;
 
-	for (var i = 0; i < tracks.length; ++i) {
+	for (var i = tracks.length-1; i >= 0; --i) {
 		var track = tracks[i];
 		if (track && track.play) {
 			var c = (tracks.length == 1) ? colors.length-1 : i;
