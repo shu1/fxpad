@@ -51,7 +51,7 @@ window.onload = function() {
 	}
 
 	var param = location.search.slice(1).split("&");
-	for (var i  = param.length-1; i >= 0; --i) {
+	for (var i = 0; i < param.length; ++i) {
 		log(param[i]);
 		var pair = param[i].split("=");
 		params[pair[0]] = pair[1];
@@ -69,14 +69,14 @@ window.onload = function() {
 	vars.textY = canvas.height - vars.textHeight/4;
 
 	initVars();
-	loadStems(vars.stem);
+	loadStems(params["track"]);
 
 	for (var i = colors.length-1; i >= 0; --i) {
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
 	}
 
 	visualizer = new Visualizer(context2d, document.getElementById("gl"));
-	visualizer.setIndex(parseInt(params["vis"]));
+	visualizer.setIndex(params["vis"]);
 	requestAnimationFrame(draw);
 
 	if (window.PointerEvent) {
@@ -152,7 +152,6 @@ window.onload = function() {
 
 		select.onchange = function(event) {
 			var index = event.target.value;
-			log("loadStems(" + index + ")");
 			loadStems(index);
 		}
 	}
@@ -162,12 +161,13 @@ function loadStems(index) {
 	index = parseInt(index);
 	if (index >= 0 && index < stems.length) {
 		vars.stem = index;
-		pauseStop(true);
-		var stemTracks = stems[vars.stem].tracks;
-		for (var i = 0; i < stemTracks.length; ++i) {
-			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src);
-			vars.nLoad++;
-		}
+	}
+	pauseStop(true);
+	log("loadTrack(" + vars.stem + ")");
+	var stemTracks = stems[vars.stem].tracks;
+	for (var i = 0; i < stemTracks.length; ++i) {
+		loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src);
+		vars.nLoad++;
 	}
 }
 
