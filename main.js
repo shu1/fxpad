@@ -14,17 +14,28 @@ var colors = [
 	[0.5,0.5,  0],
 	[0.5,0.5,0.5]
 ]
-var stems = [	// TODO add more stems
-	{text:"Music", src:"Music" + audioType},
-	{text:"Vocals", src:"Vocals" + audioType},
-	{text:"Back Vocals", src:"BackVocals" + audioType}
-]
+var stems = [{
+	text: "Viva Las Vegas - Elvis Presley",
+	tracks: [
+		{text:"Music", src:"Viva-Music" + audioType},
+		{text:"Vocals", src:"Viva-Vocals" + audioType},
+		{text:"Back Vocals", src:"Viva-BackVocals" + audioType}
+	]
+},{
+	text: "White Rabbit - Jefferson Airplane",
+	tracks: [
+		{text:"Bass Drums", src:"White-BassDrums.wav"},
+		{text:"Guitar", src:"White-Guitar.wav"},
+		{text:"Vocals", src:"White-Vocals.wav"},
+		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"}
+	]
+}]
 
 function initVars() {
 	vars.nOn = 0;
+	vars.nPlay = 0;
 	vars.nLoad = 0;
 	vars.nLoaded = 0;
-	vars.nPlay = 0;
 	tracks.length = 0;
 }
 
@@ -46,6 +57,7 @@ window.onload = function() {
 		params[pair[0]] = pair[1];
 	}
 
+	vars.stem = 0;
 	vars.fpsTime = 0;
 	vars.fpsCount = 0;
 	vars.fpsText = "";
@@ -57,10 +69,7 @@ window.onload = function() {
 	vars.textY = canvas.height - vars.textHeight/4;
 
 	initVars();
-	for (var i = 0; i < stems.length; ++i) {
-		loadAudio(i, stems[i].text, stems[i].src);
-		vars.nLoad++;
-	}
+	loadStems(vars.stem);
 
 	for (var i = colors.length-1; i >= 0; --i) {
 		styles[i] = "rgb(" + Math.floor(colors[i][0]*255) + "," + Math.floor(colors[i][1]*255) + "," + Math.floor(colors[i][2]*255) + ")";
@@ -113,7 +122,7 @@ window.onload = function() {
 		span.style.display = "inline";	// if not mobile then show sc input ui
 	}
 
-	var select = document.getElementById("select");
+	var select = document.getElementById("visualizer");
 	if (select) {
 		var texts = visualizer.texts();
 		for (var i = 0; i < texts.length; ++i) {
@@ -128,6 +137,36 @@ window.onload = function() {
 			var index = event.target.value;
 			log("visualizer(" + index + ")");
 			visualizer.setIndex(index);
+		}
+	}
+
+	select = document.getElementById("stems");
+	if (select) {
+		for (var i = 0; i < stems.length; ++i) {
+			var option = document.createElement("option");
+			option.value = i;
+			option.innerHTML = stems[i].text;
+			if (i == vars.stem) option.selected = true;
+			select.appendChild(option);
+		}
+
+		select.onchange = function(event) {
+			var index = event.target.value;
+			log("loadStems(" + index + ")");
+			loadStems(index);
+		}
+	}
+}
+
+function loadStems(index) {
+	index = parseInt(index);
+	if (index >= 0 && index < stems.length) {
+		vars.stem = index;
+		pauseStop(true);
+		var stemTracks = stems[vars.stem].tracks;
+		for (var i = 0; i < stemTracks.length; ++i) {
+			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src);
+			vars.nLoad++;
 		}
 	}
 }
