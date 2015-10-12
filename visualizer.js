@@ -1,7 +1,7 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 
-function Visualizer(context2d, glCanvas) {
+function Visualizer(context2d, glCanvas) {	// TODO look into context2d gradients and globalComposite
 	var gl, programInfo, bufferInfo, fftSize, data, width, height, n, positions, options, texture;
 	var texts = ["Spectrum", "Bellagio", "Mirage", "Aurora"];
 	var cutoff = 0.67;

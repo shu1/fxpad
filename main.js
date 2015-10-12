@@ -19,7 +19,7 @@ var stems = [{
 	tracks: [
 		{text:"Music", src:"Viva-Music" + audioType},
 		{text:"Vocals", src:"Viva-Vocals" + audioType},
-		{text:"Back Vocals", src:"Viva-BackVocals" + audioType}
+		{text:"Chorus", src:"Viva-Chorus" + audioType}
 	]
 },{
 	text: "White Rabbit - Jefferson Airplane",
@@ -28,6 +28,16 @@ var stems = [{
 		{text:"Guitar", src:"White-Guitar.wav"},
 		{text:"Vocals", src:"White-Vocals.wav"},
 		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"}
+	]
+},{
+	text: "Don't Stop Me Now - Queen",
+	tracks: [
+		{text:"Bass", src:"Dont-Bass.mp3"},
+		{text:"Chorus", src:"Dont-Chorus.mp3"},
+		{text:"Drums", src:"Dont-Drums.mp3"},
+		{text:"Guitar", src:"Dont-Guitar.mp3"},
+		{text:"Piano", src:"Dont-Piano.mp3"},
+		{text:"Vocals", src:"Dont-Vocals.mp3"}
 	]
 }]
 
