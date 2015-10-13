@@ -139,7 +139,7 @@ window.onload = function() {
 			var option = document.createElement("option");
 			option.value = i;
 			option.innerHTML = texts[i];
-			if (i == visualizer.getIndex()) option.selected = true;
+			if (i == visualizer.index()) option.selected = true;
 			select.appendChild(option);
 		}
 
@@ -429,7 +429,7 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, visualizer.getIndex() ? colors[c] : styles[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, (visualizer.index() > 1) ? colors[c] : styles[c], i / tracks.length, progress);
 
 			if (track.on) {
 				context2d.strokeStyle = styles[c];
