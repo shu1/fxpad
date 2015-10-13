@@ -64,10 +64,6 @@ function Visualizer(context2d, glCanvas) {
 		}
 	}
 
-	this.index = function() {
-		return visIndex;
-	}
-
 	this.draw = function(analyser, color, offset, progress) {
 		analyser.fftSize = fftSize;
 		analyser.getByteFrequencyData(data);
@@ -76,17 +72,17 @@ function Visualizer(context2d, glCanvas) {
 		case 0:
 			context2d.fillStyle = color;
 			for (var i = data.length-1; i >= 0; --i) {
-				drawRect(i, 1);
+				drawRect(i);
 			}
-			context2d.fillStyle = "dimgray";
-			drawRect(Math.floor(data.length * progress), 2);
+			context2d.fillStyle = "black";
+			drawRect(Math.floor(data.length * progress));
 			break;
 		case 1:
 			for (var i = data.length-1; i >= 0; --i) {
 				var h = data[i]/-255 * height;
 				var gradient = context2d.createLinearGradient(0, height, 0, height + h);
 				gradient.addColorStop(0, "rgba(255,255,255,0)");
-				gradient.addColorStop(1, color);
+				gradient.addColorStop(1, (i == Math.floor(data.length * progress)) ? "black" : color);
 				context2d.fillStyle = gradient;
 				context2d.fillRect((i + offset) * width, height, 1, h);
 			}
@@ -114,9 +110,13 @@ function Visualizer(context2d, glCanvas) {
 			break;
 		}
 
-		function drawRect(i, h) {
-			context2d.fillRect(i * width, (1 - data[i]/255) * height, width, h);
+		function drawRect(i) {
+			context2d.fillRect(i * width, (1 - data[i]/255) * height, width, 1);
 		}
+	}
+
+	this.index = function() {
+		return visIndex;
 	}
 
 	this.texts = function() {
