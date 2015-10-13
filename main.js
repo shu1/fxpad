@@ -22,14 +22,6 @@ var stems = [{
 		{text:"Chorus", src:"Viva-Chorus" + audioType},
 	]
 },{
-// 	text: "White Rabbit - Jefferson Airplane",
-// 	tracks: [
-// 		{text:"Bass Drums", src:"White-BassDrums.wav"},
-// 		{text:"Guitar", src:"White-Guitar.wav"},
-// 		{text:"Vocals", src:"White-Vocals.wav"},
-// 		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"},
-// 	]
-// },{
 	text: "Analog or Digital - Wildlife Control",
 	tracks: [
 		{text:"Bass", src:"Analog-Bass.mp3"},
@@ -40,12 +32,12 @@ var stems = [{
 },{
 	text: "Don't Stop Me Now - Queen",
 	tracks: [
-		{text:"Vocals", src:"Dont-Vocals.mp3"},
-		{text:"Piano", src:"Dont-Piano.mp3"},
-		{text:"Bass", src:"Dont-Bass.mp3"},
-		{text:"Chorus", src:"Dont-Chorus.mp3"},
-		{text:"Drums", src:"Dont-Drums.mp3"},
-		{text:"Guitar", src:"Dont-Guitar.mp3"},
+		{text:"Vocals", src:"Dont-Vocals" + audioType},
+		{text:"Piano", src:"Dont-Piano" + audioType},
+		{text:"Bass", src:"Dont-Bass" + audioType},
+		{text:"Chorus", src:"Dont-Chorus" + audioType},
+		{text:"Drums", src:"Dont-Drums" + audioType},
+		{text:"Guitar", src:"Dont-Guitar" + audioType},
 	]
 }]
 
