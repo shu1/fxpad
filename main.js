@@ -22,12 +22,20 @@ var stems = [{
 		{text:"Chorus", src:"Viva-Chorus" + audioType},
 	]
 },{
-	text: "White Rabbit - Jefferson Airplane",
+// 	text: "White Rabbit - Jefferson Airplane",
+// 	tracks: [
+// 		{text:"Bass Drums", src:"White-BassDrums.wav"},
+// 		{text:"Guitar", src:"White-Guitar.wav"},
+// 		{text:"Vocals", src:"White-Vocals.wav"},
+// 		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"},
+// 	]
+// },{
+	text: "Analog or Digital - Wildlife Control",
 	tracks: [
-		{text:"Bass Drums", src:"White-BassDrums.wav"},
-		{text:"Guitar", src:"White-Guitar.wav"},
-		{text:"Vocals", src:"White-Vocals.wav"},
-		{text:"Guitar Chamber", src:"White-GuitarChamber.wav"},
+		{text:"Bass", src:"Analog-Bass.mp3"},
+		{text:"Guitar/Piano", src:"Analog-GuitarPiano.mp3"},
+		{text:"Drums", src:"Analog-Drums.mp3"},
+		{text:"Vocals", src:"Analog-Vocals.mp3"},
 	]
 },{
 	text: "Don't Stop Me Now - Queen",
@@ -403,7 +411,6 @@ function draw(time) {
 	}
 
 	context2d.clearRect(0, 0, canvas.width, canvas.height);
-
 	context2d.lineWidth = 1;
 	context2d.strokeStyle = "lightgray";
 	context2d.moveTo(0, 0);
