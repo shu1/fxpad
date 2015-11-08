@@ -447,6 +447,12 @@ function draw(time) {
 		}
 	}
 
+	if (vars.nLoaded < vars.nLoad) {
+		context2d.font = "bold " + vars.textHeight + "px sans-serif";;
+		context2d.fillStyle = "gray";
+		context2d.fillText("Loading..", canvas.width/2 - 50, canvas.height/2);
+	}
+
 	if (vars.text) {
 		context2d.font = vars.font;
 		context2d.fillStyle = "gray";
