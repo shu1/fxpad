@@ -2,6 +2,7 @@
 <!-- DJ effects pad 2011 by Shuichi Aizawa -->
 <html>
 <head>
+<meta name="viewport" content="user-scalable=no">
 <title>DJ effects pad</title>
 </head>
 <body>
@@ -42,7 +43,7 @@ var audioType = ".m4a";
 <script src="visualizer.js"></script>
 <script src="main.js"></script>
 
-<script type="vs" id="vs1">
+<script type="x-shader/x-vertex" id="vs1">
 attribute vec4 position;
 varying float alpha;
 uniform float offset;
@@ -51,7 +52,7 @@ void main() {
 	gl_Position = vec4(position.x + offset, position.yzw);
 }
 </script>
-<script type="fs" id="fs1">
+<script type="x-shader/x-fragment" id="fs1">
 precision mediump float;
 uniform vec3 color;
 varying float alpha;
@@ -60,13 +61,13 @@ void main() {
 }
 </script>
 
-<script type="vs" id="vs2">
+<script type="x-shader/x-vertex" id="vs2">
 attribute vec4 position;
 void main() {
 	gl_Position = position;
 }
 </script>
-<script type="fs" id="fs2">
+<script type="x-shader/x-fragment" id="fs2">
 precision mediump float;
 uniform vec2 resolution;
 uniform float cutoff;
