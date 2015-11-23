@@ -127,10 +127,14 @@ window.onload = function() {
 		}
 	}
 
-	var span = document.getElementById("span");
-	if (span && !vars.useBuffer) {
-		span.style.display = "inline";	// if not mobile then show sc input ui
+	function hideElement(id) {
+		var element = document.getElementById(id);
+		if (element && vars.useBuffer) {	// if mobile then hide
+			element.style.display = "none";
+		}
 	}
+	hideElement("span");
+	hideElement("div");
 
 	var select = document.getElementById("visualizer");
 	if (select) {
