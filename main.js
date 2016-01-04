@@ -7,9 +7,9 @@ var colors = [
 	[  0,  0,  1],
 	[  1,  0,  0],
 	[  1,0.5,  0],
+	[0  ,0.5,0.5],
 	[  0,  0,0.5],
 	[0.5,  0,  0],
-	[0  ,0.5,0.5],
 	[0.5,  0,0.5],
 	[0.5,0.5,  0],
 	[0.5,0.5,0.5],
@@ -38,6 +38,18 @@ var stems = [{
 		{text:"Chorus", src:"Dont-Chorus" + audioType},
 		{text:"Drums", src:"Dont-Drums" + audioType},
 		{text:"Guitar", src:"Dont-Guitar" + audioType},
+	]
+},{
+	text: "Flaming June - BT",
+	tracks: [
+		{text:"Piano Harp", src:"FJ-PianoHarp" + audioType},
+		{text:"Strings Brass", src:"FJ-StringsBrass" + audioType},
+		{text:"FX Original", src:"FJ-FXOriginal" + audioType},
+		{text:"Synths", src:"FJ-Synths" + audioType},
+		{text:"FX Adds Rises Hits", src:"FJ-FXAddsRisesHits" + audioType},
+		{text:"Perc Electronic", src:"FJ-PercElectronic" + audioType},
+		{text:"Bass", src:"FJ-Bass" + audioType},
+		{text:"Perc Orchestral", src:"FJ-PercOrchestral" + audioType},
 	]
 }]
 
