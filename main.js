@@ -79,7 +79,6 @@ window.onload = function() {
 		params[pair[0]] = pair[1];
 	}
 
-	vars.stem = 0;
 	vars.fpsTime = 0;
 	vars.fpsCount = 0;
 	vars.fpsText = "";
@@ -180,16 +179,16 @@ window.onload = function() {
 }
 
 function loadStems(index) {
+	pauseStop(true);
 	index = parseInt(index);
 	if (index >= 0 && index < stems.length) {
 		vars.stem = index;
-	}
-	pauseStop(true);
-	log("loadTrack(" + vars.stem + ")");
-	var stemTracks = stems[vars.stem].tracks;
-	for (var i = 0; i < stemTracks.length; ++i) {
-		loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src);
-		vars.nLoad++;
+		log("loadTrack(" + vars.stem + ")");
+		var stemTracks = stems[vars.stem].tracks;
+		for (var i = 0; i < stemTracks.length; ++i) {
+			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src);
+			vars.nLoad++;
+		}
 	}
 }
 
