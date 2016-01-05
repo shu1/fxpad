@@ -124,54 +124,54 @@ window.onload = function() {
 		event.preventDefault()
 	}
 
-	var file = document.getElementById("file");
-	if (file) {
-		file.onchange = loadFiles;
+	var element = document.getElementById("file");
+	if (element) {
+		element.onchange = loadFiles;
 	}
 
-	var url = document.getElementById("url");
-	if (url) {
-		url.onkeypress = function(event) {
+	element = document.getElementById("url");
+	if (element) {
+		element.onkeypress = function(event) {
 			if (event.keyCode == 13) {
 				loadSC();
 			}
 		}
 	}
 
-	var span = document.getElementById("span");
-	if (span && vars.useBuffer) {	// if mobile then hide
-		span.style.display = "none";
+	element = document.getElementById("span");
+	if (element && vars.useBuffer) {	// if mobile then hide
+		element.style.display = "none";
 	}
 
-	var select = document.getElementById("visualizer");
-	if (select) {
+	element = document.getElementById("visualizer");
+	if (element) {
 		var texts = visualizer.texts();
 		for (var i = 0; i < texts.length; ++i) {
 			var option = document.createElement("option");
 			option.value = i;
 			option.innerHTML = texts[i];
 			if (i == visualizer.index()) option.selected = true;
-			select.appendChild(option);
+			element.appendChild(option);
 		}
 
-		select.onchange = function(event) {
+		element.onchange = function(event) {
 			var index = event.target.value;
 			log("visualizer(" + index + ")");
 			visualizer.setIndex(index);
 		}
 	}
 
-	select = document.getElementById("stems");
-	if (select) {
+	element = document.getElementById("stems");
+	if (element) {
 		for (var i = 0; i < stems.length; ++i) {
 			var option = document.createElement("option");
 			option.value = i;
 			option.innerHTML = stems[i].text;
 			if (i == vars.stem) option.selected = true;
-			select.appendChild(option);
+			element.appendChild(option);
 		}
 
-		select.onchange = function(event) {
+		element.onchange = function(event) {
 			var index = event.target.value;
 			loadStems(index);
 		}
