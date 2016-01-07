@@ -3,9 +3,9 @@
 
 function Visualizer(context2d, glCanvas) {
 	var gl, programInfo, bufferInfo, fftSize, data, width, height, n, positions, options, texture;
-	var texts = ["Spectrum 2D", "Bellagio 2D", "Bellagio GL", "Mirage GL", "Aurora GL"];
+	var texts = ["Visualizer:", "Spectrum 2D", "Bellagio 2D", "Bellagio GL", "Mirage GL", "Aurora GL"];
 	var cutoff = 0.67;
-	var visIndex = 0;
+	var visIndex = 1;
 
 	if (glCanvas && window.twgl) {
 		gl = twgl.getWebGLContext(glCanvas);
@@ -18,14 +18,14 @@ function Visualizer(context2d, glCanvas) {
 
 	function init() {
 		switch(visIndex) {
-		case 0:
 		case 1:
+		case 2:
 			fftSize = 256;
 			data = new Uint8Array(Math.ceil(fftSize/2 * cutoff));
 			width = context2d.canvas.width / data.length;
 			height = context2d.canvas.height;
 			break;
-		case 2:
+		case 3:
 			fftSize = 256;
 			data = new Uint8Array(Math.ceil(fftSize/2 * cutoff));
 			width = 2 / data.length;	// 2 is width of clipspace
@@ -40,8 +40,8 @@ function Visualizer(context2d, glCanvas) {
 			programInfo = twgl.createProgramInfo(gl, ["vs1", "fs1"]);
 			bufferInfo = twgl.createBufferInfoFromArrays(gl, {position:{numComponents:2, data:positions}});
 			break;
-		case 3:
 		case 4:
+		case 5:
 			fftSize = 256;
 			data = new Uint8Array(fftSize/2);
 			options = {width:data.length, height:1, format:gl.ALPHA};
@@ -56,7 +56,7 @@ function Visualizer(context2d, glCanvas) {
 		index = parseInt(index);
 		if (index != visIndex && index >= 0 && index < texts.length) {
 			visIndex = index;
-			if (visIndex < 2 && gl) {
+			if (visIndex < 3 && gl) {
 				gl.clearColor(0, 0, 0, 0);
 				gl.clear(gl.COLOR_BUFFER_BIT);
 			}
@@ -69,7 +69,7 @@ function Visualizer(context2d, glCanvas) {
 		analyser.getByteFrequencyData(data);
 
 		switch (visIndex) {
-		case 0:
+		case 1:
 			context2d.fillStyle = color;
 			for (var i = data.length-1; i >= 0; --i) {
 				drawRect(i);
@@ -77,7 +77,7 @@ function Visualizer(context2d, glCanvas) {
 			context2d.fillStyle = "black";
 			drawRect(Math.floor(data.length * progress));
 			break;
-		case 1:
+		case 2:
 			for (var i = data.length-1; i >= 0; --i) {
 				var h = data[i]/-255 * height;
 				var gradient = context2d.createLinearGradient(0, height, 0, height + h);
@@ -87,7 +87,7 @@ function Visualizer(context2d, glCanvas) {
 				context2d.fillRect((i + offset) * width, height, 1, h);
 			}
 			break;
-		case 2:
+		case 3:
 			for (var i = data.length-1; i >= 0; --i) {
 				positions[i*n+3] = data[i] / 128 - 1;	// y normalized to -1 ~ 1
 			}
@@ -99,10 +99,10 @@ function Visualizer(context2d, glCanvas) {
 			twgl.setUniforms(programInfo, uniforms);
 			twgl.drawBufferInfo(gl, gl.LINES, bufferInfo);
 			break;
-		case 3:
 		case 4:
+		case 5:
 			twgl.setTextureFromArray(gl, texture, data, options);
-			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[gl.canvas.width, gl.canvas.height], inverse:visIndex == 3};
+			var uniforms = {color:color, texture:texture, cutoff:cutoff, resolution:[gl.canvas.width, gl.canvas.height], inverse:visIndex == 4};
 			gl.useProgram(programInfo.program);
 			twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
 			twgl.setUniforms(programInfo, uniforms);

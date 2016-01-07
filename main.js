@@ -15,6 +15,8 @@ var colors = [
 	[0.5,0.5,0.5],
 ]
 var stems = [{
+	text: "Tracks:"
+},{
 	text: "Viva Las Vegas - Elvis Presley",
 	tracks: [
 		{text:"Music", src:"Viva-Music" + audioType},
@@ -79,6 +81,7 @@ window.onload = function() {
 		params[pair[0]] = pair[1];
 	}
 
+	vars.stem = 0;
 	vars.fpsTime = 0;
 	vars.fpsCount = 0;
 	vars.fpsText = "";
@@ -181,7 +184,7 @@ window.onload = function() {
 function loadStems(index) {
 	pauseStop(true);
 	index = parseInt(index);
-	if (index >= 0 && index < stems.length) {
+	if (index > 0 && index < stems.length) {
 		vars.stem = index;
 		log("loadTrack(" + vars.stem + ")");
 		var stemTracks = stems[vars.stem].tracks;
@@ -440,9 +443,9 @@ function draw(time) {
 			var progress = track.audio ?
 				track.audio.currentTime / track.audio.duration :
 				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, (visualizer.index() > 1) ? colors[c] : styles[c], i / tracks.length, progress);
+			visualizer.draw(track.analyser, (visualizer.index() > 2) ? colors[c] : styles[c], i / tracks.length, progress);
 
-			if (track.on) {
+			if (track.on) {	// TODO bring this out of vis code and into UI code
 				context2d.strokeStyle = styles[c];
 				drawArc(arc * n, arc * (n+1));
 				++n;
