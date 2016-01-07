@@ -440,10 +440,13 @@ function draw(time) {
 		var track = tracks[i];
 		if (track && track.play) {
 			var c = (tracks.length == 1) ? colors.length-1 : i;
-			var progress = track.audio ?
-				track.audio.currentTime / track.audio.duration :
-				(audioContext.currentTime - track.time) / track.buffer.duration;
-			visualizer.draw(track.analyser, (visualizer.index() > 2) ? colors[c] : styles[c], i / tracks.length, progress);
+
+			if (visualizer.index() > 0) {
+				var progress = track.audio ?
+					track.audio.currentTime / track.audio.duration :
+					(audioContext.currentTime - track.time) / track.buffer.duration;
+				visualizer.draw(track.analyser, (visualizer.index() > 2) ? colors[c] : styles[c], i / tracks.length, progress);
+			}
 
 			if (track.on) {	// TODO bring this out of vis code and into UI code
 				context2d.strokeStyle = styles[c];
