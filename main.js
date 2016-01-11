@@ -18,40 +18,44 @@ var stems = [{
 	text: "Tracks:"
 },{
 	text: "Viva Las Vegas - Elvis Presley",
+	type: "40vbr44he.m4a",
 	tracks: [
-		{text:"Music", src:"Viva-Music" + audioType},
-		{text:"Vocals", src:"Viva-Vocals" + audioType},
-		{text:"Chorus", src:"Viva-Chorus" + audioType},
+		{text:"Music", src:"Viva-Music"},
+		{text:"Vocals", src:"Viva-Vocals"},
+		{text:"Chorus", src:"Viva-Chorus"},
 	]
 },{
 	text: "Analog or Digital - Wildlife Control",
+	type: "80vbr44he.m4a",
 	tracks: [
-		{text:"Bass", src:"Analog-Bass.mp3"},
-		{text:"Guitar/Piano", src:"Analog-GuitarPiano.mp3"},
-		{text:"Drums", src:"Analog-Drums.mp3"},
-		{text:"Vocals", src:"Analog-Vocals.mp3"},
+		{text:"Bass", src:"Analog-Bass"},
+		{text:"Guitar/Piano", src:"Analog-GuitarPiano"},
+		{text:"Drums", src:"Analog-Drums"},
+		{text:"Vocals", src:"Analog-Vocals"},
 	]
 },{
 	text: "Don't Stop Me Now - Queen",
+	type: "40vbr44he.m4a",
 	tracks: [
-		{text:"Vocals", src:"Dont-Vocals" + audioType},
-		{text:"Piano", src:"Dont-Piano" + audioType},
-		{text:"Bass", src:"Dont-Bass" + audioType},
-		{text:"Chorus", src:"Dont-Chorus" + audioType},
-		{text:"Drums", src:"Dont-Drums" + audioType},
-		{text:"Guitar", src:"Dont-Guitar" + audioType},
+		{text:"Vocals", src:"Dont-Vocals"},
+		{text:"Piano", src:"Dont-Piano"},
+		{text:"Bass", src:"Dont-Bass"},
+		{text:"Chorus", src:"Dont-Chorus"},
+		{text:"Drums", src:"Dont-Drums"},
+		{text:"Guitar", src:"Dont-Guitar"},
 	]
 },{
 	text: "Flaming June - BT",
+	type: "40vbr96he.m4a",
 	tracks: [
-		{text:"Piano Harp", src:"FJ-PianoHarp" + audioType},
-		{text:"Strings Brass", src:"FJ-StringsBrass" + audioType},
-		{text:"FX Original", src:"FJ-FXOriginal" + audioType},
-		{text:"Synths", src:"FJ-Synths" + audioType},
-		{text:"FX Adds Rises Hits", src:"FJ-FXAddsRisesHits" + audioType},
-		{text:"Perc Electronic", src:"FJ-PercElectronic" + audioType},
-		{text:"Bass", src:"FJ-Bass" + audioType},
-		{text:"Perc Orchestral", src:"FJ-PercOrchestral" + audioType},
+		{text:"Piano Harp", src:"FJ-PianoHarp"},
+		{text:"Strings Brass", src:"FJ-StringsBrass"},
+		{text:"FX Original", src:"FJ-FXOriginal"},
+		{text:"Synths", src:"FJ-Synths"},
+		{text:"FX Adds Rises Hits", src:"FJ-FXAddsRisesHits"},
+		{text:"Perc Electronic", src:"FJ-PercElectronic"},
+		{text:"Bass", src:"FJ-Bass"},
+		{text:"Perc Orchestral", src:"FJ-PercOrchestral"},
 	]
 }]
 
@@ -189,7 +193,7 @@ function loadStems(index) {
 		log("loadTrack(" + vars.stem + ")");
 		var stemTracks = stems[vars.stem].tracks;
 		for (var i = 0; i < stemTracks.length; ++i) {
-			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src);
+			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src + stems[vars.stem].type);
 			vars.nLoad++;
 		}
 	}
