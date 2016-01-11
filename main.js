@@ -80,7 +80,7 @@ window.onload = function() {
 
 	var param = location.search.slice(1).split("&");
 	for (var i = 0; i < param.length; ++i) {
-		log(param[i]);
+//		log(param[i]);
 		var pair = param[i].split("=");
 		params[pair[0]] = pair[1];
 	}
@@ -163,7 +163,7 @@ window.onload = function() {
 
 		element.onchange = function(event) {
 			var index = event.target.value;
-			log("visualizer(" + index + ")");
+//			log("visualizer(" + index + ")");
 			visualizer.setIndex(index);
 		}
 	}
@@ -190,7 +190,8 @@ function loadStems(index) {
 	index = parseInt(index);
 	if (index > 0 && index < stems.length) {
 		vars.stem = index;
-		log("loadTrack(" + vars.stem + ")");
+//		log("loadTrack(" + vars.stem + ")");
+		log(stems[vars.stem].type);
 		var stemTracks = stems[vars.stem].tracks;
 		for (var i = 0; i < stemTracks.length; ++i) {
 			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src + stems[vars.stem].type);
@@ -247,7 +248,7 @@ function loadSC() {
 }
 
 function loadAudio(index, text, src, play) {
-	log("loadAudio(" + (index+1) + ")");
+//	log("loadAudio(" + (index+1) + ")");
 	if (vars.useBuffer) {
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
@@ -275,7 +276,7 @@ function loadAudio(index, text, src, play) {
 }
 
 function loadBuffer(index, text, data, play) {
-	log("loadBuffer(" + (index+1) + ")");
+//	log("loadBuffer(" + (index+1) + ")");
 	audioContext.decodeAudioData(data, function(buffer) {
 		initTrack(index, text);
 		tracks[index].buffer = buffer;
@@ -284,7 +285,7 @@ function loadBuffer(index, text, data, play) {
 }
 
 function initTrack(index, text) {
-	log("initEffects(" + (index+1) + ")");
+//	log("initEffects(" + (index+1) + ")");
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
 	lo.frequency.value = audioContext.sampleRate/2;
@@ -326,7 +327,7 @@ function setText(index) {
 
 function toggleEffect(index) {
 	if (vars.nPlay < 1 || tracks[index].play) {
-		log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
+//		log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
 		tracks[index].on = !tracks[index].on;
 		setText(index);
 
@@ -393,7 +394,7 @@ function pauseStop(force) {
 function ended(event) {
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i].audio == event.target || tracks[i].source == event.target) {
-			log("ended(" + (i+1) + ")");
+			log("end(" + (i+1) + ")");
 			vars.nPlay--;
 			tracks[i].play = false;
 			tracks[i].on = false;

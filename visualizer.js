@@ -4,7 +4,7 @@
 function Visualizer(context2d, glCanvas) {
 	var gl, programInfo, bufferInfo, fftSize, data, width, height, n, positions, options, texture;
 	var texts = ["Visualizer:", "Spectrum 2D", "Bellagio 2D", "Bellagio GL", "Mirage GL", "Aurora GL"];
-	var cutoff = 0.67;
+	var cutoff = 2/3;
 	var visIndex = 1;
 
 	if (glCanvas && window.twgl) {
