@@ -153,7 +153,7 @@ window.onload = function() {
 	element = document.getElementById("visualizer");
 	if (element) {
 		var texts = visualizer.texts();
-		for (var i = 0; i < texts.length; ++i) {
+		for (var i = 1; i < texts.length; ++i) {
 			var option = document.createElement("option");
 			option.value = i;
 			option.innerHTML = texts[i];
@@ -170,7 +170,7 @@ window.onload = function() {
 
 	element = document.getElementById("stems");
 	if (element) {
-		for (var i = 0; i < stems.length; ++i) {
+		for (var i = 1; i < stems.length; ++i) {
 			var option = document.createElement("option");
 			option.value = i;
 			option.innerHTML = stems[i].text;
