@@ -5,6 +5,11 @@
 <meta name="viewport" content="user-scalable=no">
 <title>DJ effects pad</title>
 <style>
+@media (max-device-width:1023px) and (orientation:portrait) {
+	.mobile {
+		display:none;
+	}
+}
 @media (max-device-width:1023px) and (orientation:landscape) {
 	.landscape {
 		display:none;
@@ -17,12 +22,25 @@
 		<canvas id="gl" width="960" height="380" style="position:absolute; z-index:-1; border-style:solid"></canvas>
 		<canvas id="canvas" width="960" height="380" style="border-style:solid; touch-action:none"></canvas>
 		<div class="landscape">
-			<select id="stems"><option value="0">Tracks:</option></select>
-			<span id="span">soundcloud url:
+			<select id="stems">
+				<option value="0" selected>Tracks:</option>
+				<option value="1">Viva Las Vegas - Elvis Presley</option>
+				<option value="2">Analog or Digital - Wildlife Control</option>
+				<option value="3">Don't Stop Me Now - Queen</option>
+				<option value="4">Flaming June - BT</option>
+			</select>
+			<span class="mobile">soundcloud url:
 				<input type="url" id="url" value="http://soundcloud.com/henrikgrunden/avicii-vs-journey-dont-stop"/>
 			</span>
 			<input type="file" id="file" multiple/>
-			<select id="visualizer"><option value="0">Visualizer:</option></select>
+			<select id="visualizer">
+				<option value="0">Visualizer:</option>
+				<option value="1" selected>Spectrum</option>
+				<option value="2">Bellagio</option>
+				<option value="3">Bellagio GL</option>
+				<option value="4">Mirage GL</option>
+				<option value="5">Aurora GL</option>
+			</select>
 		</div>
 	</center>
 	<div class="landscape" style="width:600px; margin-left:auto; margin-right:auto">
@@ -44,7 +62,7 @@
 	</div>
 </body>
 <script src="sdk-2.0.0.js"></script>
-<script>
+<script type="text/javascript">
 SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
 </script>
 <script src="twgl.min.js"></script>

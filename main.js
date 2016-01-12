@@ -15,9 +15,7 @@ var colors = [
 	[0.5,0.5,0.5],
 ]
 var stems = [{
-	text: "Tracks:"
 },{
-	text: "Viva Las Vegas - Elvis Presley",
 	type: "40vbr44he.m4a",
 	tracks: [
 		{text:"Music", src:"Viva-Music"},
@@ -25,7 +23,6 @@ var stems = [{
 		{text:"Chorus", src:"Viva-Chorus"},
 	]
 },{
-	text: "Analog or Digital - Wildlife Control",
 	type: "80vbr44he.m4a",
 	tracks: [
 		{text:"Bass", src:"Analog-Bass"},
@@ -34,7 +31,6 @@ var stems = [{
 		{text:"Vocals", src:"Analog-Vocals"},
 	]
 },{
-	text: "Don't Stop Me Now - Queen",
 	type: "40vbr44he.m4a",
 	tracks: [
 		{text:"Vocals", src:"Dont-Vocals"},
@@ -45,7 +41,6 @@ var stems = [{
 		{text:"Guitar", src:"Dont-Guitar"},
 	]
 },{
-	text: "Flaming June - BT",
 	type: "40vbr96he.m4a",
 	tracks: [
 		{text:"Piano Harp", src:"FJ-PianoHarp"},
@@ -145,22 +140,8 @@ window.onload = function() {
 		}
 	}
 
-	element = document.getElementById("span");
-	if (element && vars.useBuffer) {	// if mobile then hide
-		element.style.display = "none";
-	}
-
 	element = document.getElementById("visualizer");
 	if (element) {
-		var texts = visualizer.texts();
-		for (var i = 1; i < texts.length; ++i) {
-			var option = document.createElement("option");
-			option.value = i;
-			option.innerHTML = texts[i];
-			if (i == visualizer.index()) option.selected = true;
-			element.appendChild(option);
-		}
-
 		element.onchange = function(event) {
 			var index = event.target.value;
 //			log("visualizer(" + index + ")");
@@ -170,14 +151,6 @@ window.onload = function() {
 
 	element = document.getElementById("stems");
 	if (element) {
-		for (var i = 1; i < stems.length; ++i) {
-			var option = document.createElement("option");
-			option.value = i;
-			option.innerHTML = stems[i].text;
-			if (i == vars.stem) option.selected = true;
-			element.appendChild(option);
-		}
-
 		element.onchange = function(event) {
 			var index = event.target.value;
 			loadStems(index);

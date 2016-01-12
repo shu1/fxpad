@@ -3,7 +3,6 @@
 
 function Visualizer(context2d, glCanvas) {
 	var gl, programInfo, bufferInfo, fftSize, data, width, height, n, positions, options, texture;
-	var texts = ["Visualizer:", "Spectrum", "Bellagio", "Bellagio GL", "Mirage GL", "Aurora GL"];
 	var cutoff = 2/3;
 	var visIndex = 1;
 
@@ -54,7 +53,7 @@ function Visualizer(context2d, glCanvas) {
 
 	this.setIndex = function(index) {
 		index = parseInt(index);
-		if (index != visIndex && index >= 0 && index < texts.length) {
+		if (index != visIndex && index >= 0 && index <= 5) {
 			visIndex = index;
 			if (visIndex < 3 && gl) {
 				gl.clearColor(0, 0, 0, 0);
@@ -117,9 +116,5 @@ function Visualizer(context2d, glCanvas) {
 
 	this.index = function() {
 		return visIndex;
-	}
-
-	this.texts = function() {
-		return texts;
 	}
 }
