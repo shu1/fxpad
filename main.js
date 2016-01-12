@@ -164,7 +164,7 @@ function loadStems(index) {
 	if (index > 0 && index < stems.length) {
 		vars.stem = index;
 //		log("loadTrack(" + vars.stem + ")");
-		log(stems[vars.stem].type);
+		log("load(" + stems[vars.stem].type + ")");
 		var stemTracks = stems[vars.stem].tracks;
 		for (var i = 0; i < stemTracks.length; ++i) {
 			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src + stems[vars.stem].type);
@@ -210,7 +210,7 @@ function loadFiles(event) {
 
 function loadSC() {
 	var url = document.getElementById("url").value;
-	log("loadSoundcloud(" + url + ")");
+	log("loadSC(" + url + ")");
 	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
 			pauseStop();
