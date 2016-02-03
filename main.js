@@ -102,6 +102,19 @@ window.onload = function() {
 	visualizer.setIndex(params["vis"]);
 	requestAnimationFrame(draw);
 
+	window.onorientationchange = function(event) {
+		switch(window.orientation) {
+		case 90:
+		case -90:
+			setDisplay("landscape", "none");
+			break;
+		case 0:
+		case 180:
+			setDisplay("landscape", "block");
+			break;
+		}
+	}
+
 	if (window.PointerEvent) {
 		canvas.onpointerdown = mouseDown;
 		canvas.onpointermove = mouseMove;
