@@ -57,23 +57,24 @@ function setDisplay(name, display) {
 	}
 }
 
-switch(window.orientation) {
-case 90:
-case -90:
-	setDisplay("landscape", "none");
+function setHeight() {
 	var elements = document.getElementsByTagName("canvas");
 	for (var i = elements.length-1; i >= 0; --i) {
 		elements[i].height = window.innerHeight - 26;
 	}
+}
+
+switch(window.orientation) {
+case 90:
+case -90:
+	setDisplay("landscape", "none");
+	setHeight();
 case 0:
 case 180:
 	setDisplay("mobile", "none");	// don't break above on purpose, so this matches for all mobile
 }
 </script>
 <script src="sdk-2.0.0.js"></script>
-<script type="text/javascript">
-SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
-</script>
 <script src="twgl.min.js"></script>
 <script src="visualizer.js"></script>
 <script src="main.js"></script>

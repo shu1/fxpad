@@ -107,6 +107,7 @@ window.onload = function() {
 		case 90:
 		case -90:
 			setDisplay("landscape", "none");
+			vars.landscape = true;
 			break;
 		case 0:
 		case 180:
@@ -169,6 +170,8 @@ window.onload = function() {
 			loadStems(index);
 		}
 	}
+
+	SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
 }
 
 function loadStems(index) {
@@ -400,6 +403,11 @@ function ended(event) {
 }
 
 function draw(time) {
+	if (vars.landscape && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
+		setHeight();
+		vars.landscape = false;
+	}
+
 	vars.fpsCount++;
 	if (time - vars.fpsTime > 984) {
 		vars.fpsText = vars.fpsCount + "fps ";
