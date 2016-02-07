@@ -405,6 +405,8 @@ function ended(event) {
 function draw(time) {
 	if (vars.landscape && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
 		setHeight();
+		log(canvas.width + "x" + canvas.height);
+		vars.textY = canvas.height - vars.textHeight/4;
 		vars.landscape = false;
 	}
 
