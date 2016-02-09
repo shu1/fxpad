@@ -474,7 +474,7 @@ function draw(time) {
 	if (vars.text) {
 		context2d.font = vars.font;
 		context2d.fillStyle = "gray";
-		context2d.fillText(vars.fpsText + vars.text, 2, 10);
+		context2d.fillText(vars.fpsText + vars.text, 2, 12);
 	}
 
 	requestAnimationFrame(draw);
@@ -585,7 +585,7 @@ function log(text) {
 		vars.text += logs[i] + " ";
 	}
 
-	context2d.font = vars.font = "10px sans-serif";
+	context2d.font = vars.font = "12px sans-serif";
 	if (context2d.measureText(vars.text).width > canvas.width) {
 		logs.shift();
 	} else {
