@@ -71,7 +71,7 @@ case -90:
 	setHeight();
 case 0:
 case 180:
-	setDisplay("mobile", "none");	// don't break above on purpose, so this matches for all mobile
+	setDisplay("mobile", "none");	// don't break above on purpose, so this runs for all mobile
 }
 </script>
 <script src="sdk-2.0.0.js"></script>
@@ -96,7 +96,6 @@ void main() {
 	gl_FragColor = vec4(color, alpha);
 }
 </script>
-
 <script type="x-shader/x-vertex" id="vs2">
 attribute vec4 position;
 void main() {

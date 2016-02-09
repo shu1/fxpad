@@ -63,11 +63,9 @@ function initVars() {
 }
 
 window.onload = function() {
-	window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
-	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
-
+	audioContext = new (window.AudioContext || window.webkitAudioContext)();
 	log(navigator.userAgent);
 	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0 || navigator.userAgent.indexOf("Android") >= 0) {
 		vars.useBuffer = true;
@@ -90,8 +88,8 @@ window.onload = function() {
 	vars.y = vars.filterY = canvas.height/2;
 	vars.textHeight = 24;
 	vars.textY = canvas.height - vars.textHeight/4;
-
 	initVars();
+
 	loadStems(params["track"]);
 
 	for (var i = colors.length-1; i >= 0; --i) {
@@ -100,6 +98,8 @@ window.onload = function() {
 
 	visualizer = new Visualizer(context2d, document.getElementById("gl"));
 	visualizer.setIndex(params["vis"]);
+
+	window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 	requestAnimationFrame(draw);
 
 	window.onorientationchange = function(event) {
@@ -135,22 +135,11 @@ window.onload = function() {
 		}
 	}
 
-	canvas.ondrop = loadFiles;
-	canvas.ondragover  = function(event) {
-		event.preventDefault()
-	}
-
-	var element = document.getElementById("file");
+	element = document.getElementById("stems");
 	if (element) {
-		element.onchange = loadFiles;
-	}
-
-	element = document.getElementById("url");
-	if (element) {
-		element.onkeypress = function(event) {
-			if (event.keyCode == 13) {
-				loadSC();
-			}
+		element.onchange = function(event) {
+			var index = event.target.value;
+			loadStems(index);
 		}
 	}
 
@@ -163,15 +152,26 @@ window.onload = function() {
 		}
 	}
 
-	element = document.getElementById("stems");
+	canvas.ondrop = loadFiles;
+	canvas.ondragover  = function(event) {
+		event.preventDefault()
+	}
+
+	var element = document.getElementById("file");
 	if (element) {
-		element.onchange = function(event) {
-			var index = event.target.value;
-			loadStems(index);
-		}
+		element.onchange = loadFiles;
 	}
 
 	SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
+
+	element = document.getElementById("url");
+	if (element) {
+		element.onkeypress = function(event) {
+			if (event.keyCode == 13) {
+				loadSC();
+			}
+		}
+	}
 }
 
 function loadStems(index) {
