@@ -428,6 +428,11 @@ function draw(time) {
 	context2d.lineTo(canvas.width, canvas.height/2);
 	context2d.moveTo(canvas.width/2, 0);
 	context2d.lineTo(canvas.width/2, canvas.height);
+	var bar = 48;
+	context2d.moveTo(0, bar);
+	context2d.lineTo(canvas.width, bar);
+	context2d.moveTo(0, canvas.height - bar);
+	context2d.lineTo(canvas.width, canvas.height - bar);
 	context2d.stroke();
 
 	if (vars.nPlay < 1 || vars.nOn < 1) {
