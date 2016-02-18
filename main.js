@@ -87,9 +87,9 @@ window.onload = function() {
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
 	vars.textHeight = 24;
-	vars.textY = canvas.height - vars.textHeight/4;
-	initVars();
+	vars.bar = 40;
 
+	initVars();
 	loadStems(params["track"]);
 
 	for (var i = colors.length-1; i >= 0; --i) {
@@ -408,7 +408,6 @@ function draw(time) {
 	if (vars.landscape > 0 && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
 		setHeight();
 		log(canvas.width + "x" + canvas.height);
-		vars.textY = canvas.height - vars.textHeight/4;
 		vars.landscape = -1;
 	}
 
@@ -430,11 +429,10 @@ function draw(time) {
 	context2d.lineTo(canvas.width, canvas.height/2);
 	context2d.moveTo(canvas.width/2, 0);
 	context2d.lineTo(canvas.width/2, canvas.height);
-	var bar = 48;
-	context2d.moveTo(0, bar);
-	context2d.lineTo(canvas.width, bar);
-	context2d.moveTo(0, canvas.height - bar);
-	context2d.lineTo(canvas.width, canvas.height - bar);
+	context2d.moveTo(0, vars.bar);
+	context2d.lineTo(canvas.width, vars.bar);
+	context2d.moveTo(0, canvas.height - vars.bar);
+	context2d.lineTo(canvas.width, canvas.height - vars.bar);
 	context2d.stroke();
 
 	if (vars.nPlay < 1 || vars.nOn < 1) {
@@ -464,11 +462,12 @@ function draw(time) {
 		}
 	}
 
+	var y = canvas.height - (vars.bar - vars.textHeight)/2;
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			context2d.font = tracks[i].font;
 			context2d.fillStyle = styles[(vars.nPlay < 1 || tracks.length == 1 || !tracks[i].play) ? colors.length-1 : i];
-			context2d.fillText(tracks[i].text, tracks[i].x1, vars.textY);
+			context2d.fillText(tracks[i].text, tracks[i].x1, y);
 		}
 	}
 
@@ -531,7 +530,7 @@ function mouseDown(event) {
 	vars.click = true;
 	mouseXY(event);
 
-	if (vars.y > vars.textY - vars.textHeight) {
+	if (vars.y > canvas.height - vars.bar) {
 		for (var i = tracks.length-1; i >= 0; --i) {
 			if (vars.x > tracks[i].x1 && vars.x < tracks[i].x2) {
 				vars.drag = true;
