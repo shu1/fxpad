@@ -14,7 +14,7 @@ var colors = [
 	[0.5,0.5,  0],
 	[0.5,0.5,0.5],
 ]
-var stems = [{
+var stems = [{	// first is intentionally blank
 },{
 	type: "40vbr44he.m4a",
 	tracks: [
@@ -407,8 +407,8 @@ function ended(event) {
 function draw(time) {
 	if (vars.landscape > 0 && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
 		setHeight();
-		log(canvas.width + "x" + canvas.height);
 		vars.landscape = -1;
+		log(canvas.width + "x" + canvas.height);
 	}
 
 	vars.fpsCount++;
@@ -555,7 +555,7 @@ function mouseXY(event) {
 		vars.y = event.pageY;
 	}
 	vars.x -= canvas.offsetLeft;
-	vars.y -= canvas.offsetTop;
+	vars.y -= canvas.offsetTop;	// TODO convert to float for variable height?
 }
 
 function mouseMove(event) {
