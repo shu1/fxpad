@@ -89,7 +89,6 @@ window.onload = function() {
 	vars.textHeight = 20;
 	vars.bar = 40;
 	vars.lockWidth = 80;
-	vars.lock = false;
 
 	initVars();
 	toggleLock(false);
@@ -141,6 +140,11 @@ window.onload = function() {
 
 		if (event.charCode == 96) {	// `
 			toggleLock();
+			if (!vars.lock) {	// TODO streamline this filter reset
+				vars.x = canvas.width/2;
+				vars.y = canvas.height/2;
+				doFilters();
+			}
 		}
 	}
 
@@ -341,11 +345,10 @@ function toggleEffect(index) {
 }
 
 function toggleLock(force) {
-	if (force == undefined) {
-		vars.lock = !vars.lock;
-	}
-	else {
+	if (force != undefined) {
 		vars.lock = force;
+	} else {
+		vars.lock = !vars.lock;
 	}
 
 	vars.lockFont = setFont(vars.lock);
