@@ -86,6 +86,7 @@ window.onload = function() {
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
+	vars.logHeight = 12;
 	vars.textHeight = 20;
 	vars.bar = 40;
 	vars.lockWidth = 80;
@@ -509,10 +510,11 @@ function draw(time) {
 		context2d.fillText("Loading..", canvas.width/2 - 50, canvas.height/2);
 	}
 
-	if (vars.text) {
-		context2d.font = vars.font;
-		context2d.fillStyle = "gray";
-		context2d.fillText(vars.fpsText + vars.text, 2, 12);
+	context2d.font = vars.logHeight + "px sans-serif";
+	context2d.fillStyle = "gray";
+	context2d.fillText(vars.fpsText, 2, vars.bar + vars.logHeight);
+	for (var i = logs.length-1; i >= 0; --i) {
+		context2d.fillText(logs[i], 2, vars.bar + vars.logHeight*(i+2));	// +2 to leave room for fps text
 	}
 
 	requestAnimationFrame(draw);
@@ -626,18 +628,9 @@ function mouseUp(event) {
 
 function log(text) {
 	console.log(audioContext.currentTime.toFixed(3), text);
-
 	logs.push(text);
-	vars.text = "";
-	for (var i = logs.length-1; i >= 1; --i) {
-		vars.text += logs[i] + " ";
-	}
-
-	context2d.font = vars.font = "12px sans-serif";
-	if (context2d.measureText(vars.text).width > canvas.width) {
+	if (logs.length + 1 > (canvas.height - vars.bar*2) / vars.logHeight) {	// +1 to leave room for fps text
 		logs.shift();
-	} else {
-		vars.text += logs[0];
 	}
 }
 })();
