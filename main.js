@@ -86,10 +86,13 @@ window.onload = function() {
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
-	vars.textHeight = 24;
+	vars.textHeight = 20;
 	vars.bar = 40;
+	vars.lockWidth = 80;
+	vars.lock = false;
 
 	initVars();
+	toggleLock(false);
 	loadStems(params["track"]);
 
 	for (var i = colors.length-1; i >= 0; --i) {
@@ -134,6 +137,10 @@ window.onload = function() {
 		var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
 		if (i >= 0 && i < tracks.length) {
 			toggleEffect(i);
+		}
+
+		if (event.charCode == 96) {	// `
+			toggleLock();
 		}
 	}
 
@@ -297,7 +304,7 @@ function initTrack(index, text) {
 
 	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
 	vars.width = canvas.width / n;
-	context2d.font = "bold " + vars.textHeight + "px sans-serif";
+	setFont(true);
 	for (var i = tracks.length-1; i >= 0; --i) {
 		if (tracks[i]) {
 			while (context2d.measureText(tracks[i].text).width > vars.width) {
@@ -310,7 +317,7 @@ function initTrack(index, text) {
 }
 
 function setText(index) {
-	tracks[index].font = context2d.font = (tracks[index].on ? "bold " : "") + vars.textHeight + "px sans-serif";
+	tracks[index].font = setFont(tracks[index].on);
 	var width = context2d.measureText(tracks[index].text).width;
 	tracks[index].x1 = (vars.width - width)/2 + vars.width * index;
 	tracks[index].x2 = tracks[index].x1 + width;
@@ -331,6 +338,20 @@ function toggleEffect(index) {
 
 		doFilters(index);
 	}
+}
+
+function toggleLock(force) {
+	if (force == undefined) {
+		vars.lock = !vars.lock;
+	}
+	else {
+		vars.lock = force;
+	}
+
+	vars.lockFont = setFont(vars.lock);
+	var width = context2d.measureText("Lock").width;
+	vars.lockX1 = (vars.lockWidth - width)/2;
+	vars.lockX2 = vars.lockX1 + width;
 }
 
 function playStart() {
@@ -404,6 +425,10 @@ function ended(event) {
 	}
 }
 
+function setFont(bold) {
+	return context2d.font = (bold ? "bold " : "") + vars.textHeight + "pt sans-serif";
+}
+
 function draw(time) {
 	if (vars.landscape > 0 && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
 		setHeight();
@@ -471,8 +496,12 @@ function draw(time) {
 		}
 	}
 
+	context2d.fillStyle = "gray";
+	context2d.font = vars.lockFont;
+	context2d.fillText("Lock", vars.lockX1, (vars.bar + vars.textHeight)/2);
+
 	if (vars.nLoaded < vars.nLoad) {
-		context2d.font = "bold " + vars.textHeight + "px sans-serif";;
+		setFont(true);
 		context2d.fillStyle = "gray";
 		context2d.fillText("Loading..", canvas.width/2 - 50, canvas.height/2);
 	}
@@ -530,7 +559,11 @@ function mouseDown(event) {
 	vars.click = true;
 	mouseXY(event);
 
-	if (vars.y > canvas.height - vars.bar) {
+	if (vars.y < vars.bar && vars.x < vars.lockWidth) {
+		vars.drag = true;
+		toggleLock();
+	}
+	else if (vars.y > canvas.height - vars.bar) {
 		for (var i = tracks.length-1; i >= 0; --i) {
 			if (vars.x > tracks[i].x1 && vars.x < tracks[i].x2) {
 				vars.drag = true;
@@ -576,6 +609,12 @@ function mouseUp(event) {
 		else if (!vars.useBuffer) {
 			loadSC();
 		}
+	}
+
+	if (!vars.lock) {
+		vars.x = canvas.width/2;
+		vars.y = canvas.height/2;
+		doFilters();
 	}
 
 	vars.click = false;
