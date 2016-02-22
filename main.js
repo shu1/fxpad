@@ -86,10 +86,10 @@ window.onload = function() {
 	vars.octaves = Math.log(vars.nyquist / 40) / Math.LN2;
 	vars.x = vars.filterX = canvas.width/2;
 	vars.y = vars.filterY = canvas.height/2;
+	vars.bar = 48;
+	vars.textHeight = 18;
 	vars.logHeight = 12;
-	vars.textHeight = 20;
-	vars.bar = 40;
-	vars.lockWidth = 80;
+	vars.lockWidth = 96;
 
 	initVars();
 	toggleLock(false);
@@ -564,7 +564,7 @@ function mouseDown(event) {
 	vars.click = true;
 	mouseXY(event);
 
-	if (vars.y < vars.bar && vars.x < vars.lockWidth) {
+	if (vars.y <= vars.bar && vars.x < vars.lockWidth) {
 		vars.drag = true;
 		toggleLock();
 	}
@@ -592,8 +592,8 @@ function mouseXY(event) {
 		vars.x = event.pageX;
 		vars.y = event.pageY;
 	}
-	vars.x -= canvas.offsetLeft;
-	vars.y -= canvas.offsetTop;	// TODO convert to float for variable height?
+	vars.x -= canvas.offsetLeft + 3;	// 3 for border width
+	vars.y -= canvas.offsetTop + 3;	// TODO convert to float for variable height?
 }
 
 function mouseMove(event) {
