@@ -89,7 +89,7 @@ window.onload = function() {
 	vars.bar = 48;
 	vars.textHeight = 18;
 	vars.logHeight = 12;
-	vars.lockWidth = 96;
+	vars.lockText = "  Lock  ";
 
 	initVars();
 	toggleLock(false);
@@ -353,8 +353,8 @@ function toggleLock(force) {
 	}
 
 	vars.lockFont = setFont(vars.lock);
-	var width = context2d.measureText("Lock").width;
-	vars.lockX1 = (vars.lockWidth - width)/2;
+	var width = context2d.measureText(vars.lockText).width;
+	vars.lockX1 = (canvas.width - width)/2;
 	vars.lockX2 = vars.lockX1 + width;
 }
 
@@ -502,7 +502,7 @@ function draw(time) {
 
 	context2d.fillStyle = "gray";
 	context2d.font = vars.lockFont;
-	context2d.fillText("Lock", vars.lockX1, (vars.bar + vars.textHeight)/2);
+	context2d.fillText(vars.lockText, vars.lockX1, (vars.bar + vars.textHeight)/2);
 
 	if (vars.nLoaded < vars.nLoad) {
 		setFont(true);
@@ -564,7 +564,7 @@ function mouseDown(event) {
 	vars.click = true;
 	mouseXY(event);
 
-	if (vars.y <= vars.bar && vars.x < vars.lockWidth) {
+	if (vars.y < vars.bar && vars.x > vars.lockX1 && vars.x < vars.lockX2) {
 		vars.drag = true;
 		toggleLock();
 	}
