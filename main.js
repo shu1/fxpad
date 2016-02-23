@@ -1,7 +1,7 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
 (function(){
-var canvas, context2d, audioContext, visualizer, params={}, vars={}, styles=[], tracks=[], logs=[];
+var canvas, context2d, audioContext, visualizer, vars={}, styles=[], tracks=[], logs=[];
 var colors = [
 	[  0,0.5,  0],
 	[  0,  0,  1],
@@ -71,11 +71,14 @@ window.onload = function() {
 		vars.useBuffer = true;
 	}
 
+	var params = {}
 	var param = location.search.slice(1).split("&");
-	for (var i = 0; i < param.length; ++i) {
-//		log(param[i]);
-		var pair = param[i].split("=");
-		params[pair[0]] = pair[1];
+	if (param && param[0]) {	// even if no params, param[0] still becomes an empty string
+		for (var i = 0; i < param.length; ++i) {
+			log(param[i]);
+			var pair = param[i].split("=");
+			params[pair[0]] = pair[1];
+		}
 	}
 
 	vars.stem = 0;
