@@ -164,7 +164,7 @@ window.onload = function() {
 	if (element) {
 		element.onchange = function(event) {
 			var index = event.target.value;
-//			log("visualizer(" + index + ")");
+			log("visualizer(" + index + ")");
 			visualizer.setIndex(index);
 		}
 	}
@@ -196,8 +196,7 @@ function loadStems(index) {
 	index = parseInt(index);
 	if (index > 0 && index < stems.length) {
 		vars.stem = index;
-//		log("loadTrack(" + vars.stem + ")");
-		log("load(" + stems[vars.stem].type + ")");
+		log("loadTrack(" + vars.stem + ", " + stems[vars.stem].type + ")");
 		var stemTracks = stems[vars.stem].tracks;
 		for (var i = 0; i < stemTracks.length; ++i) {
 			loadAudio(i, stemTracks[i].text, "audio/" + stemTracks[i].src + stems[vars.stem].type);
@@ -213,7 +212,7 @@ function loadFiles(event) {
 		pauseStop(true);
 		if (length > colors.length) {
 			length = colors.length;
-			log("MAX " + length + " FILES");
+			log("MAX " + colors.length + " FILES");
 		}
 		for (var i = 0; i < length; ++i) {
 			loadFile(files[i], files.length == 1);
@@ -243,7 +242,7 @@ function loadFiles(event) {
 
 function loadSC() {
 	var url = document.getElementById("url").value;
-	log("loadSC(" + url + ")");
+	log("loadSoundCloud(" + url + ")");
 	SC.get('/resolve', {url:url}, function(track) {
 		if (track.stream_url) {
 			pauseStop();
@@ -254,7 +253,7 @@ function loadSC() {
 }
 
 function loadAudio(index, text, src, play) {
-//	log("loadAudio(" + (index+1) + ")");
+	log("loadAudio(" + (index+1) + ")");
 	if (vars.useBuffer) {
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
@@ -282,7 +281,7 @@ function loadAudio(index, text, src, play) {
 }
 
 function loadBuffer(index, text, data, play) {
-//	log("loadBuffer(" + (index+1) + ")");
+	log("loadBuffer(" + (index+1) + ")");
 	audioContext.decodeAudioData(data, function(buffer) {
 		initTrack(index, text);
 		tracks[index].buffer = buffer;
@@ -291,7 +290,7 @@ function loadBuffer(index, text, data, play) {
 }
 
 function initTrack(index, text) {
-//	log("initEffects(" + (index+1) + ")");
+	log("initEffects(" + (index+1) + ")");
 	var lo = audioContext.createBiquadFilter();
 	lo.type = "lowpass";
 	lo.frequency.value = audioContext.sampleRate/2;
@@ -333,7 +332,7 @@ function setText(index) {
 
 function toggleEffect(index) {
 	if (vars.nPlay < 1 || tracks[index].play) {
-//		log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
+		log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
 		tracks[index].on = !tracks[index].on;
 		setText(index);
 
@@ -354,6 +353,7 @@ function toggleLock(force) {
 	} else {
 		vars.lock = !vars.lock;
 	}
+	log("lock(" + (vars.lock ? "on)" : "off)"));
 
 	vars.lockFont = setFont(vars.lock);
 	var width = context2d.measureText(vars.lockText).width;
@@ -630,7 +630,8 @@ function mouseUp(event) {
 }
 
 function log(text) {
-	console.log(audioContext.currentTime.toFixed(3), text);
+	text = audioContext.currentTime.toFixed(3) + " " + text;
+	console.log(text);
 	logs.push(text);
 	if (logs.length + 1 > (canvas.height - vars.bar*2) / vars.logHeight) {	// +1 to leave room for fps text
 		logs.shift();
