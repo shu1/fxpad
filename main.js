@@ -105,6 +105,18 @@ window.onload = function() {
 	window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame;
 	requestAnimationFrame(draw);
 
+	if (window.PointerEvent) {
+		canvas.onpointerdown = mouseDown;
+		canvas.onpointermove = mouseMove;
+		window.onpointerup = mouseUp;
+	}
+	canvas.ontouchstart = mouseDown;
+	canvas.ontouchmove = mouseMove;
+	window.ontouchend = mouseUp;
+	canvas.onmousedown = mouseDown;
+	canvas.onmousemove = mouseMove;
+	window.onmouseup = mouseUp;
+
 	window.onorientationchange = function(event) {
 		switch(window.orientation) {
 		case 90:
@@ -120,18 +132,6 @@ window.onload = function() {
 			break;
 		}
 	}
-
-	if (window.PointerEvent) {
-		canvas.onpointerdown = mouseDown;
-		canvas.onpointermove = mouseMove;
-		window.onpointerup = mouseUp;
-	}
-	canvas.ontouchstart = mouseDown;
-	canvas.ontouchmove = mouseMove;
-	window.ontouchend = mouseUp;
-	canvas.onmousedown = mouseDown;
-	canvas.onmousemove = mouseMove;
-	window.onmouseup = mouseUp;
 
 	window.onkeypress = function(event) {
 		var i = (event.charCode == 48) ? 9 : event.charCode-49;	// map 0 key to 10th
@@ -429,10 +429,6 @@ function ended(event) {
 	}
 }
 
-function setFont(bold) {
-	return context2d.font = (bold ? "bold " : "") + vars.textHeight + "pt sans-serif";
-}
-
 function draw(time) {
 	if (vars.landscape > 0 && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
 		setHeight();
@@ -524,6 +520,10 @@ function draw(time) {
 		context2d.arc(vars.filterX, vars.filterY, 20, a1, a2);
 		context2d.stroke();
 	}
+}
+
+function setFont(bold) {
+	return context2d.font = (bold ? "bold " : "") + vars.textHeight + "pt sans-serif";
 }
 
 function doFilters(index) {
