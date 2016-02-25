@@ -436,7 +436,7 @@ function draw(time) {
 	if (vars.landscape > 0 && window.innerHeight < window.innerWidth) {	// hack since onorientationchange doesn't change innerHeight immediately
 		setHeight();
 		vars.landscape = -1;
-		log(canvas.width + "x" + canvas.height);
+		log("setResolution(" + canvas.width + "x" + canvas.height + ")");
 	}
 
 	vars.fpsCount++;
@@ -447,8 +447,8 @@ function draw(time) {
 	}
 
 	context2d.clearRect(0, 0, canvas.width, canvas.height);
-	context2d.lineWidth = 1;
 	context2d.strokeStyle = "lightgray";
+	context2d.lineWidth = 1;
 	context2d.moveTo(0, 0);
 	context2d.lineTo(canvas.width, canvas.height);
 	context2d.moveTo(canvas.width, 0);
@@ -505,15 +505,13 @@ function draw(time) {
 
 	if (vars.nLoaded < vars.nLoad) {
 		setFont(true);
-		context2d.fillStyle = "gray";
 		context2d.fillText("Loading..", canvas.width/2 - 50, canvas.height/2);
 	}
 
 	context2d.font = vars.logHeight + "px sans-serif";
-	context2d.fillStyle = "gray";
-	context2d.fillText(vars.fpsText, 2, vars.bar + vars.logHeight);
+	context2d.fillText(vars.fpsText, 2, vars.bar);
 	for (var i = logs.length-1; i >= 0; --i) {
-		context2d.fillText(logs[i], 2, vars.bar + vars.logHeight*(i+2));	// +2 to leave room for fps text
+		context2d.fillText(logs[i], 2, vars.bar + vars.logHeight*(i+1));
 	}
 
 	requestAnimationFrame(draw);
@@ -633,7 +631,7 @@ function log(text) {
 	text = audioContext.currentTime.toFixed(3) + " " + text;
 	console.log(text);
 	logs.push(text);
-	if (logs.length + 1 > (canvas.height - vars.bar*2) / vars.logHeight) {	// +1 to leave room for fps text
+	if (logs.length > (canvas.height - vars.bar*2) / vars.logHeight) {
 		logs.shift();
 	}
 }
