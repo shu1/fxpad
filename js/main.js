@@ -1,66 +1,5 @@
 // DJ effects pad 2011 by Shuichi Aizawa
 "use strict";
-(function(){
-var canvas, context2d, audioContext, visualizer, vars={}, styles=[], tracks=[], logs=[];
-var colors = [
-	[  0,0.5,  0],
-	[  0,  0,  1],
-	[  1,  0,  0],
-	[  1,0.5,  0],
-	[0  ,0.5,0.5],
-	[  0,  0,0.5],
-	[0.5,  0,  0],
-	[0.5,  0,0.5],
-	[0.5,0.5,  0],
-	[0.5,0.5,0.5],
-]
-var stems = [{	// first is intentionally blank
-},{
-	type: "40vbr44he.m4a",
-	tracks: [
-		{text:"Music", src:"Viva-Music"},
-		{text:"Vocals", src:"Viva-Vocals"},
-		{text:"Chorus", src:"Viva-Chorus"},
-	]
-},{
-	type: "80vbr44he.m4a",
-	tracks: [
-		{text:"Bass", src:"Analog-Bass"},
-		{text:"Guitar/Piano", src:"Analog-GuitarPiano"},
-		{text:"Drums", src:"Analog-Drums"},
-		{text:"Vocals", src:"Analog-Vocals"},
-	]
-},{
-	type: "40vbr44he.m4a",
-	tracks: [
-		{text:"Vocals", src:"Dont-Vocals"},
-		{text:"Piano", src:"Dont-Piano"},
-		{text:"Bass", src:"Dont-Bass"},
-		{text:"Chorus", src:"Dont-Chorus"},
-		{text:"Drums", src:"Dont-Drums"},
-		{text:"Guitar", src:"Dont-Guitar"},
-	]
-},{
-	type: "40vbr44he.m4a",
-	tracks: [
-		{text:"Piano Harp", src:"FJ-PianoHarp"},
-		{text:"Strings Brass", src:"FJ-StringsBrass"},
-		{text:"FX Original", src:"FJ-FXOriginal"},
-		{text:"Synths", src:"FJ-Synths"},
-		{text:"FX Adds Rises Hits", src:"FJ-FXAddsRisesHits"},
-		{text:"Perc Electronic", src:"FJ-PercElectronic"},
-		{text:"Bass", src:"FJ-Bass"},
-		{text:"Perc Orchestral", src:"FJ-PercOrchestral"},
-	]
-}]
-
-function initVars() {
-	vars.nOn = 0;
-	vars.nPlay = 0;
-	vars.nLoad = 0;
-	vars.nLoaded = 0;
-	tracks.length = 0;
-}
 
 window.onload = function() {
 	canvas = document.getElementById("canvas");
@@ -161,12 +100,14 @@ window.onload = function() {
 		}
 	}
 
-	element = document.getElementById("visualizer");
+	SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
+
+	element = document.getElementById("url");
 	if (element) {
-		element.onchange = function(event) {
-			var index = event.target.value;
-			log("visualizer(" + index + ")");
-			visualizer.setIndex(index);
+		element.onkeypress = function(event) {
+			if (event.keyCode == 13) {
+				loadSC();
+			}
 		}
 	}
 
@@ -180,16 +121,22 @@ window.onload = function() {
 		element.onchange = loadFiles;
 	}
 
-	SC.initialize({client_id:'28c66c838c6f68e374e707978b672fa8'});
-
-	element = document.getElementById("url");
+	element = document.getElementById("visualizer");
 	if (element) {
-		element.onkeypress = function(event) {
-			if (event.keyCode == 13) {
-				loadSC();
-			}
+		element.onchange = function(event) {
+			var index = event.target.value;
+			log("visualizer(" + index + ")");
+			visualizer.setIndex(index);
 		}
 	}
+}
+
+function initVars() {
+	vars.nOn = 0;
+	vars.nPlay = 0;
+	vars.nLoad = 0;
+	vars.nLoaded = 0;
+	tracks.length = 0;
 }
 
 function loadStems(index) {
@@ -204,6 +151,18 @@ function loadStems(index) {
 			vars.nLoad++;
 		}
 	}
+}
+
+function loadSC() {
+	var url = document.getElementById("url").value;
+	log("loadSoundCloud(" + url + ")");
+	SC.get('/resolve', {url:url}, function(track) {
+		if (track.stream_url) {
+			pauseStop();
+			loadAudio(vars.nLoad, track.title, track.stream_url + "?client_id=" + SC.options.client_id, true);
+			vars.nLoad++;
+		}
+	});
 }
 
 function loadFiles(event) {
@@ -241,105 +200,6 @@ function loadFiles(event) {
 	}
 }
 
-function loadSC() {
-	var url = document.getElementById("url").value;
-	log("loadSoundCloud(" + url + ")");
-	SC.get('/resolve', {url:url}, function(track) {
-		if (track.stream_url) {
-			pauseStop();
-			loadAudio(vars.nLoad, track.title, track.stream_url + "?client_id=" + SC.options.client_id, true);
-			vars.nLoad++;
-		}
-	});
-}
-
-function loadAudio(index, text, src, play) {
-	log("loadAudio(" + (index+1) + ")");
-	if (vars.useBuffer && src.indexOf("soundcloud") < 0) {
-		var request = new XMLHttpRequest();
-		request.open("get", src, true);
-		request.responseType = "arraybuffer";
-    	request.withCredentials = true;
-		request.onload = function() {
-			loadBuffer(index, text, request.response, play);
-		}
-		request.onerror = function(e) {
-			console.log(e);
-			log("loadBufferError(" + (index+1) + ")");
-		}
-		request.send();
-	} else {
-		var audio = new Audio();	// document.createElement("audio");	// Firefox doesn't like createElement("audio")
-		audio.crossOrigin = "anonymous";
-		audio.oncanplaythrough = function() {
-			if (!tracks[index]) {	// workaround for Chrome bug where this gets called on replays
-				initTrack(index, text);
-				tracks[index].source = audioContext.createMediaElementSource(audio);
-				tracks[index].source.connect(tracks[index].lo);
-				tracks[index].audio = audio;
-				tracks[index].audio.onended = ended;
-				if (play) playStart();
-			}
-		}
-		audio.onerror = function(e) {
-			console.log(e);
-			log("loadAudioError(" + (index+1) + ")");
-		}
-		audio.src = src;
-//		audio.load();	// necessary?
-	}
-}
-
-function loadBuffer(index, text, data, play) {
-	log("loadBuffer(" + (index+1) + ")");
-	audioContext.decodeAudioData(data, function(buffer) {
-		initTrack(index, text);
-		tracks[index].buffer = buffer;
-		if (play) playStart();
-	});
-}
-
-function initTrack(index, text) {
-	log("initEffects(" + (index+1) + ")");
-	var lo = audioContext.createBiquadFilter();
-	lo.type = "lowpass";
-	lo.frequency.value = audioContext.sampleRate/2;
-
-	var hi = audioContext.createBiquadFilter();
-	hi.type = "highpass";
-	hi.frequency.value = 10;
-
-	var analyser = audioContext.createAnalyser();
-
-	lo.connect(hi);
-	hi.connect(analyser);
-	analyser.connect(audioContext.destination);
-
-	tracks[index] = {text:text, lo:lo, hi:hi, analyser:analyser, on:true};
-	vars.nLoaded++;
-	vars.nOn++;
-
-	var n = (vars.nLoad > vars.nLoaded) ? vars.nLoad : vars.nLoaded;
-	vars.width = canvas.width / n;
-	setFont(true);
-	for (var i = tracks.length-1; i >= 0; --i) {
-		if (tracks[i]) {
-			while (context2d.measureText(tracks[i].text).width > vars.width) {
-				tracks[i].text = tracks[i].text.slice(0,-1);
-			}
-			setText(i);
-		}
-	}
-	doFilters();
-}
-
-function setText(index) {
-	tracks[index].font = setFont(tracks[index].on);
-	var width = context2d.measureText(tracks[index].text).width;
-	tracks[index].x1 = (vars.width - width)/2 + vars.width * index;
-	tracks[index].x2 = tracks[index].x1 + width;
-}
-
 function toggleEffect(index) {
 	if (vars.nPlay < 1 || tracks[index].play) {
 		log("effects(" + (index+1) + (tracks[index].on ? ", off)" : ", on)"));
@@ -371,75 +231,15 @@ function toggleLock(force) {
 	vars.lockX2 = vars.lockX1 + width;
 }
 
-function playStart() {
-	for (var i = tracks.length-1; i >= 0; --i) {
-		if (tracks[i].audio) {
-			log("play(" + (i+1) + ")");
-			tracks[i].audio.play();
-		} else {
-			tracks[i].source = audioContext.createBufferSource();
-			tracks[i].source.buffer = tracks[i].buffer;
-			tracks[i].source.connect(tracks[i].lo);
-			tracks[i].source.onended = ended;
-			tracks[i].time = audioContext.currentTime;
-
-			if (tracks[i].source.start) {
-				log("start(" + (i+1) + ")");
-				tracks[i].source.start(0);
-			}
-			else {
-				log("noteOn(" + (i+1) + ")");
-				tracks[i].source.noteOn(0);
-			}
-		}
-		tracks[i].play = true;
-		vars.nPlay++;
-	}
+function setText(index) {
+	tracks[index].font = setFont(tracks[index].on);
+	var width = context2d.measureText(tracks[index].text).width;
+	tracks[index].x1 = (vars.width - width)/2 + vars.width * index;
+	tracks[index].x2 = tracks[index].x1 + width;
 }
 
-function pauseStop(force) {
-	if (force || vars.nLoad > 0) {
-		if (vars.nPlay > 0) {
-			for (var i = tracks.length-1; i >= 0; --i) {
-				if (tracks[i].audio) {
-					log("pause(" + (i+1) + ")");
-					tracks[i].audio.pause();
-				}
-				else if (tracks[i].source.stop) {
-					log("stop(" + (i+1) + ")");
-					tracks[i].source.stop(0);
-				}
-				else {
-					log("noteOff(" + (i+1) + ")");
-					tracks[i].source.noteOff(0);
-				}
-				tracks[i].play = false;
-			}
-		}
-		initVars();
-	}
-}
-
-function ended(event) {
-	for (var i = tracks.length-1; i >= 0; --i) {
-		if (tracks[i].audio == event.target || tracks[i].source == event.target) {
-			log("end(" + (i+1) + ")");
-			vars.nPlay--;
-			tracks[i].play = false;
-			tracks[i].on = false;
-			setText(i);
-		}
-	}
-
-	vars.nOn = 0;
-	for (var i = tracks.length-1; i >= 0; --i) {
-		if (vars.nPlay < 1) {
-			tracks[i].on = true;
-			setText(i);
-		}
-
-		if (tracks[i].on) vars.nOn++;
-	}
+function setFont(bold) {
+	return context2d.font = (bold ? "bold " : "") + vars.textHeight + "pt sans-serif";
 }
 
 function draw(time) {
@@ -533,41 +333,12 @@ function draw(time) {
 	}
 }
 
-function setFont(bold) {
-	return context2d.font = (bold ? "bold " : "") + vars.textHeight + "pt sans-serif";
-}
-
-function doFilters(index) {
-	if (index == undefined) {
-		vars.filterX = vars.x;
-		vars.filterY = vars.y;
-	}
-
-	if (tracks[index] && !tracks[index].on) {
-		setFilter(index, 1, vars.nyquist, 10);
-	} else {
-		var q = Math.abs(vars.filterY / canvas.height - 0.5) * 60;
-		var x = vars.filterX / canvas.width;
-		var lo = vars.nyquist, hi = 10;
-
-		if (x < 0.5) {
-			lo = vars.nyquist * Math.pow(2, vars.octaves * (x*1.8-0.9));	// 0 ~ 0.5 -> 0.1 ~ 1 -> -0.9 ~ 0
-		} else {
-			hi = vars.nyquist * Math.pow(2, vars.octaves * (x*1.8-1.9));	// 0.5 ~ 1 -> 0 ~ 0.9 -> -1 ~ -0.1
-		}
-
-		for (var i = tracks.length-1; i >= 0; --i) {
-			if (tracks[i] && tracks[i].on) {
-				setFilter(i, q, lo, hi);
-			}
-		}
-	}
-
-	function setFilter(i, q, lo, hi) {
-		tracks[i].lo.Q.value = q;
-		tracks[i].lo.frequency.value = lo;
-		tracks[i].hi.Q.value = q;
-		tracks[i].hi.frequency.value = hi;
+function log(text) {
+	text = audioContext.currentTime.toFixed(3) + " " + text;
+	console.log(text);
+	logs.push(text);
+	if (logs.length > (canvas.height - vars.bar*2) / vars.logHeight) {
+		logs.shift();
 	}
 }
 
@@ -637,20 +408,11 @@ function mouseUp(event) {
 	vars.drag = false;
 }
 
-function log(text) {
-	text = audioContext.currentTime.toFixed(3) + " " + text;
-	console.log(text);
-	logs.push(text);
-	if (logs.length > (canvas.height - vars.bar*2) / vars.logHeight) {
-		logs.shift();
-	}
-}
-})();
 if(!window.nwf){
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','http://www.google-analytics.com/analytics.js','ga');
-ga('create', 'UA-7050108-2', 'auto');
-ga('send', 'pageview');
+ga('create','UA-7050108-2','auto');
+ga('send','pageview');
 }
