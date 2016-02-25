@@ -269,7 +269,7 @@ function loadAudio(index, text, src, play) {
 		}
 		request.send();
 	} else {
-		var audio = document.createElement("audio");
+		var audio = new Audio();	// document.createElement("audio");	// Firefox doesn't like createElement("audio")
 		audio.crossOrigin = "anonymous";
 		audio.oncanplaythrough = function() {
 			if (!tracks[index]) {	// workaround for Chrome bug where this gets called on replays
