@@ -125,9 +125,9 @@ window.onload = function() {
 		case 90:
 		case -90:
 			setDisplay("landscape", "none");
-			if (!vars.landscape) {	// if it doesn't exist
+//			if (!vars.landscape) {	// only do once
 				vars.landscape = 1;
-			}
+//			}
 			break;
 		case 0:
 		case 180:
