@@ -66,8 +66,9 @@ window.onload = function() {
 	canvas = document.getElementById("canvas");
 	context2d = canvas.getContext("2d");
 	audioContext = new (window.AudioContext || window.webkitAudioContext)();
-	log(navigator.userAgent);
-	if (window.nwf || navigator.userAgent.indexOf("Mobile") >= 0 || navigator.userAgent.indexOf("Android") >= 0) {
+	var ua = navigator.userAgent;
+	log(ua);
+	if (window.nwf || ua.indexOf("Mobile") >= 0 || ua.indexOf("Android") >= 0 || ua.indexOf("Edge") >= 0) {
 		vars.useBuffer = true;
 	}
 
@@ -254,13 +255,17 @@ function loadSC() {
 
 function loadAudio(index, text, src, play) {
 	log("loadAudio(" + (index+1) + ")");
-	if (vars.useBuffer) {
+	if (vars.useBuffer && src.indexOf("soundcloud") < 0) {
 		var request = new XMLHttpRequest();
 		request.open("get", src, true);
-    	request.withCredentials = true;
 		request.responseType = "arraybuffer";
+    	request.withCredentials = true;
 		request.onload = function() {
 			loadBuffer(index, text, request.response, play);
+		}
+		request.onerror = function(e) {
+			console.log(e);
+			log("loadBufferError(" + (index+1) + ")");
 		}
 		request.send();
 	} else {
@@ -276,7 +281,12 @@ function loadAudio(index, text, src, play) {
 				if (play) playStart();
 			}
 		}
+		audio.onerror = function(e) {
+			console.log(e);
+			log("loadAudioError(" + (index+1) + ")");
+		}
 		audio.src = src;
+//		audio.load();	// necessary?
 	}
 }
 
