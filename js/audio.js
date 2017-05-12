@@ -104,6 +104,7 @@ function playStart() {
 		}
 		tracks[i].play = true;
 		vars.nPlay++;
+		if (window.records) records = [];
 	}
 }
 

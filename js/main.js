@@ -81,14 +81,16 @@ window.onload = function() {
 		if (i >= 0 && i < tracks.length) {
 			toggleEffect(i);
 		}
-
-		if (event.charCode == 96) {	// `
+		else if (event.charCode == 96) {	// `
 			toggleLock();
 			if (!vars.lock) {	// TODO streamline this filter reset
 				vars.x = canvas.width/2;
 				vars.y = canvas.height/2;
 				doFilters();
 			}
+		}
+		else if (event.charCode == 97 && window.records) {	// a
+			printRecords(records);
 		}
 	}
 
@@ -360,6 +362,7 @@ function mouseDown(event) {
 	}
 
 	if (!vars.drag) {
+		if (window.records) record(0);
 		doFilters();
 	}
 
@@ -382,6 +385,7 @@ function mouseMove(event) {
 	if (vars.click) {
 		if (!vars.drag) {
 			mouseXY(event);
+			if (window.records) record(1);
 			doFilters();
 		}
 		event.preventDefault();
@@ -396,6 +400,9 @@ function mouseUp(event) {
 		else if (!vars.useBuffer) {
 			loadSC();
 		}
+	}
+	else if (vars.click && window.records) {
+		record(2);
 	}
 
 	if (!vars.lock) {
